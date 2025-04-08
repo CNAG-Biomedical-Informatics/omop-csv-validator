@@ -163,6 +163,10 @@ The `TIMESTAMP` field from the DDL is translated to the `date-time` format as de
 
 If your dates only follow the `YYYY-MM-DD` format, you can safely ignore any validation errors related to the missing time component.
 
+### Integers Length
+
+Depending on how you generate integers for `person_id`, you might end up with values longer than 20 characters. When this occurs, the validator will report an error like `/person_id: Expected integer - got number`. In such cases, you can safely ignore or discard the message.
+
 ## Author 
 
 Written by Manuel Rueda, PhD. Info about CNAG can be found at [https://www.cnag.eu](https://www.cnag.eu).
