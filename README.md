@@ -60,7 +60,7 @@ echo 'eval $(perl -I ~/perl5/lib/perl5/ -Mlocal::lib)' >> ~/.bashrc
 From any directory:
 
 ```bash
-cpanm OMOP::CSV::Validator --no-test
+cpanm -n OMOP::CSV::Validator
 ```
 
 #### From Github
@@ -75,7 +75,7 @@ cd omop-csv-validator
 2. Install Dependencies from:
 
 ```bash
-cpanm --notest --installdeps .
+cpanm -n --installdeps .
 ```
 
 This command reads the included `cpanfile` and installs all required dependencies into your local library directory.
