@@ -155,13 +155,13 @@ See directory [utils](utils/README.md).
 
 ## Notes
 
-### Data Format
+### TIMESTAMP format
 
-The `TIMESTAMP` field from the DDL is translated to the `date-time` format as defined in the JSON Schema specification:
+The `TIMESTAMP` field from the DDL is translated to the `date-time` format as defined in the JSON Schema specification (ISO 8601):
 
 `YYYY-MM-DDTHH:MM:SSZ`
 
-If your dates only follow the `YYYY-MM-DD` format, you can safely ignore any validation errors related to the missing time component.
+If your `TIMESTAMP` fields (ex: visit_end_datetime) follow the `date` format `YYYY-MM-DD`, you can ignore any validation errors related to the missing time component.
 
 ### Integers Length
 
