@@ -36,6 +36,7 @@ my $nocolor = 0;
 my $json_output = 0;
 my $report_tsv;
 my $report_xlsx;
+my $turbo = 0;
 
 GetOptions(
     'ddl=s'          => \$ddl_file,        # Path to the DDL file (PostgreSQL)
@@ -47,6 +48,7 @@ GetOptions(
     'json'           => \$json_output,     # Optional: emit JSON result
     'report-tsv=s'   => \$report_tsv,      # Optional: write Excel-friendly TSV report
     'report-xlsx=s'  => \$report_xlsx,     # Optional: write native Excel report
+    'turbo'          => \$turbo,           # Optional: use compiled fast-path validator
     'help|h'         => \my $help,         # Show help message
     'version|V'      => sub {
         say color("cyan"), "$0 Version $VERSION", color("reset");
@@ -100,9 +102,9 @@ sub emit_human_fatal_and_exit {
 }
 
 sub report_columns {
-    my ($analysis) = @_;
+    my ($header) = @_;
     return (
-        @{ $analysis->{header} },
+        @{$header},
         '_validation_row',
         '_validation_status',
         '_validation_error_count',
@@ -111,9 +113,9 @@ sub report_columns {
 }
 
 sub report_row_values {
-    my ( $analysis, $row_result ) = @_;
+    my ( $header, $row_result ) = @_;
     my @row = map { defined $row_result->{raw}{$_} ? $row_result->{raw}{$_} : '' }
-      @{ $analysis->{header} };
+      @{$header};
 
     push @row,
       $row_result->{row},
@@ -124,10 +126,9 @@ sub report_row_values {
     return @row;
 }
 
-sub write_report_tsv {
-    my ( $report_path, $analysis ) = @_;
-    my @report_columns = report_columns($analysis);
-
+sub open_report_tsv {
+    my ( $report_path, $header ) = @_;
+    my @report_columns = report_columns($header);
     my $writer = Text::CSV_XS->new(
         {
             binary   => 1,
@@ -140,13 +141,24 @@ sub write_report_tsv {
     $writer->print( $handle, \@report_columns )
       or die "Failed to write report header to '$report_path'\n";
 
-    for my $row_result ( @{ $analysis->{rows} } ) {
-        my @row = report_row_values( $analysis, $row_result );
-        $writer->print( $handle, \@row )
-          or die "Failed to write report row to '$report_path'\n";
-    }
+    return {
+        handle => $handle,
+        writer => $writer,
+        header => $header,
+    };
+}
 
-    $handle->close;
+sub write_report_tsv_row {
+    my ( $state, $row_result ) = @_;
+    my @row = report_row_values( $state->{header}, $row_result );
+    $state->{writer}->print( $state->{handle}, \@row )
+      or die "Failed to write report row to '$report_tsv'\n";
+}
+
+sub close_report_tsv {
+    my ($state) = @_;
+    return unless $state;
+    $state->{handle}->close;
 }
 
 sub excel_column_name {
@@ -161,17 +173,14 @@ sub excel_column_name {
     return $name;
 }
 
-sub write_report_xlsx {
-    my ( $report_path, $analysis, $schema_name ) = @_;
+sub open_report_xlsx {
+    my ( $report_path, $header, $schema_name ) = @_;
 
     eval { require Excel::Writer::XLSX; 1 }
       or die
 "Excel::Writer::XLSX is required for --report-xlsx. Install the distribution dependencies and retry.\n";
 
-    my @report_columns = report_columns($analysis);
-    my $total_rows     = scalar @{ $analysis->{rows} };
-    my $invalid_rows   = scalar grep { !$_->{ok} } @{ $analysis->{rows} };
-    my $valid_rows     = $total_rows - $invalid_rows;
+    my @report_columns = report_columns($header);
 
     my $workbook = Excel::Writer::XLSX->new($report_path)
       or die "Failed to create XLSX report '$report_path'\n";
@@ -202,17 +211,6 @@ sub write_report_xlsx {
     my $summary_label_format = $workbook->add_format( bold => 1 );
 
     $summary_ws->write_row( 0, 0, [ 'Field', 'Value' ], $header_format );
-    my @summary_rows = (
-        [ 'input_file',    $csv_file ],
-        [ 'schema_name',   $schema_name ],
-        [ 'total_rows',    $total_rows ],
-        [ 'valid_rows',    $valid_rows ],
-        [ 'invalid_rows',  $invalid_rows ],
-    );
-    for my $i ( 0 .. $#summary_rows ) {
-        $summary_ws->write( $i + 1, 0, $summary_rows[$i][0], $summary_label_format );
-        $summary_ws->write( $i + 1, 1, $summary_rows[$i][1] );
-    }
     $summary_ws->set_column( 0, 0, 20 );
     $summary_ws->set_column( 1, 1, 40 );
 
@@ -220,8 +218,8 @@ sub write_report_xlsx {
         $validation_ws->write( 0, $col_idx, $report_columns[$col_idx], $header_format );
     }
 
-    my $status_col_idx    = scalar( @{ $analysis->{header} } ) + 1;
-    my $row_col_idx       = scalar( @{ $analysis->{header} } );
+    my $status_col_idx    = scalar( @{$header} ) + 1;
+    my $row_col_idx       = scalar( @{$header} );
     my $message_col_idx   = $#report_columns;
     my $last_col_idx      = $#report_columns;
     my $last_col_name     = excel_column_name($last_col_idx);
@@ -229,61 +227,111 @@ sub write_report_xlsx {
     my $status_col_name   = excel_column_name($status_col_idx);
 
     $validation_ws->freeze_panes( 1, 0 );
-    $validation_ws->autofilter( 0, 0, $total_rows, $last_col_idx );
-    $validation_ws->set_column( 0, scalar( @{ $analysis->{header} } ) - 1, 18 )
-      if @{ $analysis->{header} };
+    $validation_ws->set_column( 0, scalar( @{$header} ) - 1, 18 )
+      if @{$header};
     $validation_ws->set_column( $status_col_idx - 1, $status_col_idx + 1, 18 );
     $validation_ws->set_column( $message_col_idx, $message_col_idx, 70 );
 
-    for my $row_idx ( 0 .. $#{ $analysis->{rows} } ) {
-        my $row_result = $analysis->{rows}[$row_idx];
-        my @row_values = report_row_values( $analysis, $row_result );
-        my $excel_row  = $row_idx + 1;
+    return {
+        report_path         => $report_path,
+        workbook            => $workbook,
+        summary_ws          => $summary_ws,
+        validation_ws       => $validation_ws,
+        header              => $header,
+        schema_name         => $schema_name,
+        header_format       => $header_format,
+        ok_status_format    => $ok_status_format,
+        error_status_format => $error_status_format,
+        ok_row_format       => $ok_row_format,
+        error_row_format    => $error_row_format,
+        summary_label_format => $summary_label_format,
+        status_col_idx      => $status_col_idx,
+        row_col_idx         => $row_col_idx,
+        message_col_idx     => $message_col_idx,
+        last_col_idx        => $last_col_idx,
+        last_col_name       => $last_col_name,
+        row_col_name        => $row_col_name,
+        status_col_name     => $status_col_name,
+        next_excel_row      => 1,
+        total_rows          => 0,
+        invalid_rows        => 0,
+    };
+}
 
-        for my $col_idx ( 0 .. $#row_values ) {
-            my $value = $row_values[$col_idx];
-            if ( $col_idx == $status_col_idx ) {
-                my $format =
-                  $row_result->{ok} ? $ok_status_format : $error_status_format;
-                $validation_ws->write( $excel_row, $col_idx, $value, $format );
-            }
-            else {
-                $validation_ws->write( $excel_row, $col_idx, $value );
-            }
+sub write_report_xlsx_row {
+    my ( $state, $row_result ) = @_;
+    my @row_values = report_row_values( $state->{header}, $row_result );
+    my $excel_row  = $state->{next_excel_row};
+
+    for my $col_idx ( 0 .. $#row_values ) {
+        my $value = $row_values[$col_idx];
+        if ( $col_idx == $state->{status_col_idx} ) {
+            my $format =
+              $row_result->{ok} ? $state->{ok_status_format} : $state->{error_status_format};
+            $state->{validation_ws}->write( $excel_row, $col_idx, $value, $format );
+        }
+        else {
+            $state->{validation_ws}->write( $excel_row, $col_idx, $value );
         }
     }
 
-    if ($total_rows) {
+    $state->{next_excel_row}++;
+    $state->{total_rows}++;
+    $state->{invalid_rows}++ unless $row_result->{ok};
+}
+
+sub close_report_xlsx {
+    my ($state) = @_;
+    return unless $state;
+
+    my $valid_rows = $state->{total_rows} - $state->{invalid_rows};
+    my @summary_rows = (
+        [ 'input_file',   $csv_file ],
+        [ 'schema_name',  $state->{schema_name} ],
+        [ 'total_rows',   $state->{total_rows} ],
+        [ 'valid_rows',   $valid_rows ],
+        [ 'invalid_rows', $state->{invalid_rows} ],
+    );
+    for my $i ( 0 .. $#summary_rows ) {
+        $state->{summary_ws}
+          ->write( $i + 1, 0, $summary_rows[$i][0], $state->{summary_label_format} );
+        $state->{summary_ws}->write( $i + 1, 1, $summary_rows[$i][1] );
+    }
+
+    $state->{validation_ws}
+      ->autofilter( 0, 0, $state->{total_rows}, $state->{last_col_idx} );
+
+    if ( $state->{total_rows} ) {
         my @row_highlight_ranges;
         push @row_highlight_ranges,
-          "A2:${row_col_name}" . ( $total_rows + 1 )
-          if $row_col_idx >= 0;
+          "A2:$state->{row_col_name}" . ( $state->{total_rows} + 1 )
+          if $state->{row_col_idx} >= 0;
         push @row_highlight_ranges,
-          excel_column_name( $status_col_idx + 1 ) . "2:${last_col_name}" . ( $total_rows + 1 )
-          if $status_col_idx + 1 <= $last_col_idx;
+          excel_column_name( $state->{status_col_idx} + 1 ) . "2:$state->{last_col_name}" . ( $state->{total_rows} + 1 )
+          if $state->{status_col_idx} + 1 <= $state->{last_col_idx};
 
         for my $data_range (@row_highlight_ranges) {
-            $validation_ws->conditional_formatting(
+            $state->{validation_ws}->conditional_formatting(
                 $data_range,
                 {
                     type     => 'formula',
-                    criteria => '=$' . $status_col_name . '2="ERROR"',
-                    format   => $error_row_format,
+                    criteria => '=$' . $state->{status_col_name} . '2="ERROR"',
+                    format   => $state->{error_row_format},
                 }
             );
-            $validation_ws->conditional_formatting(
+            $state->{validation_ws}->conditional_formatting(
                 $data_range,
                 {
                     type     => 'formula',
-                    criteria => '=$' . $status_col_name . '2="OK"',
-                    format   => $ok_row_format,
+                    criteria => '=$' . $state->{status_col_name} . '2="OK"',
+                    format   => $state->{ok_row_format},
                 }
             );
         }
     }
 
-    $workbook->close()
-      or die "Failed to finalize XLSX report '$report_path'\n";
+    $state->{workbook}->close()
+      or die "Failed to finalize XLSX report '$state->{report_path}'\n";
 }
 
 sub emit_saved_reports {
@@ -333,19 +381,39 @@ sub run_validation {
         $schema_name =~ s/\.csv$//i;
     }
 
-    my $analysis = $validator->_analyze_csv_file( $csv_file, $schema, $sep );
-    write_report_tsv( $report_tsv, $analysis ) if $report_tsv;
-    write_report_xlsx( $report_xlsx, $analysis, $schema_name ) if $report_xlsx;
+    my @errors;
+    my $tsv_state;
+    my $xlsx_state;
+
+    $validator->_stream_csv_rows(
+        $csv_file,
+        $schema,
+        $sep,
+        validation_mode => $turbo ? 'turbo' : 'json',
+        on_header => sub {
+            my ($header) = @_;
+            $tsv_state  = open_report_tsv( $report_tsv, $header ) if $report_tsv;
+            $xlsx_state = open_report_xlsx( $report_xlsx, $header, $schema_name )
+              if $report_xlsx;
+        },
+        on_row => sub {
+            my ($row_result) = @_;
+            push @errors,
+              {
+                row    => $row_result->{row},
+                errors => $row_result->{errors},
+              }
+              if @{ $row_result->{errors} };
+            write_report_tsv_row( $tsv_state, $row_result ) if $tsv_state;
+            write_report_xlsx_row( $xlsx_state, $row_result ) if $xlsx_state;
+        },
+    );
+
+    close_report_tsv($tsv_state)   if $tsv_state;
+    close_report_xlsx($xlsx_state) if $xlsx_state;
 
     return {
-        errors => [
-            map {
-                {
-                    row    => $_->{row},
-                    errors => $_->{errors},
-                }
-            } grep { @{ $_->{errors} } } @{ $analysis->{rows} }
-        ],
+        errors       => \@errors,
         schema_name  => $schema_name,
     };
 }
@@ -468,6 +536,10 @@ columns that spreadsheet users can open in Excel.
 =item B<--report-xlsx>
 
 (Optional) Write a native Excel workbook with a summary sheet, validation sheet, and colored status cues.
+
+=item B<--turbo>
+
+(Optional) Use the compiled fast-path validator instead of the default C<JSON::Validator>-based engine.
 
 =item B<--help>, B<-h>
 

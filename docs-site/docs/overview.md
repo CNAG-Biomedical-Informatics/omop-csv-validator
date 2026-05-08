@@ -6,6 +6,8 @@ sidebar_position: 1
 
 OMOP CSV Validator is a small Perl project for validating OMOP CDM CSV extracts against rules derived from PostgreSQL DDL.
 
+It validates files row by row, so it can be used on large OMOP exports without first loading the full CSV into memory.
+
 ## What it is for
 
 - checking whether a CSV file matches the expected OMOP table structure
@@ -18,7 +20,7 @@ The validator works in three steps:
 
 1. read PostgreSQL DDL containing `CREATE TABLE` statements
 2. derive a schema for each table
-3. validate each CSV row against the selected table schema
+3. stream through the CSV and validate each row against the selected table schema
 
 ## Project surfaces
 

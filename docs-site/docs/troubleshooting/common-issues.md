@@ -52,6 +52,15 @@ Be cautious if your DDL differs materially from those patterns.
 
 ## Large files and memory
 
-The current validator reads the full CSV into memory before validating rows.
+The validator now processes CSV input row by row instead of loading the whole file before validation starts.
 
-That is acceptable for many files, but it is not a streaming validator. For very large OMOP exports, memory usage can become material.
+That makes it suitable for large OMOP exports.
+
+In practice:
+
+- default human-readable validation starts reporting against streamed rows
+- `--json` mainly accumulates failing rows in memory
+- `--report-tsv` writes rows incrementally
+- `--report-xlsx` writes workbook rows incrementally
+
+Memory usage can still grow if a very large number of rows fail or if you generate large report artifacts, but it no longer scales with the entire input file in the same way as a full in-memory read.

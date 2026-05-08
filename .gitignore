@@ -8,6 +8,8 @@ test.pl
 TO_DO.md
 clean.sh
 nytprof.out
+/nytprof/
+/nytprof*/
 /blib/
 __pycache__/
 /cover_db/
@@ -19,3 +21,7 @@ __pycache__/
 **/bck/
 old/
 /git_history.txt
+/bench/generated/
+/bench/results/
+/bench/nytprof/
+/bench/nytprof*/

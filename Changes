@@ -3,6 +3,7 @@ Revision history for Perl distribution OMOP-CSV-Validator
 0.04 2025-05-08T00:00:00Z (Manuel Rueda <mrueda@cpan.org>)
 
  - Added opt-in <--json>, <--report-tsv>, and <--report-xlsx> CLI outputs for automation and spreadsheet users
+ - Added opt-in <--turbo> validation mode for large CSV workloads
  - Improved OMOP DDL and null-marker handling
  - Added automatic separator inference with explicit fallback for ambiguous files
  - Expanded test coverage and added automated test workflow
