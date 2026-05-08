@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">OMOP CSV Validator</title>
+  <desc id="desc">A teal square mark with table rows and a check symbol.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f766e"/>
+      <stop offset="100%" stop-color="#14b8a6"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="112" height="112" rx="24" fill="url(#bg)"/>
+  <rect x="26" y="30" width="50" height="10" rx="4" fill="#ecfeff"/>
+  <rect x="26" y="50" width="42" height="10" rx="4" fill="#ccfbf1"/>
+  <rect x="26" y="70" width="34" height="10" rx="4" fill="#99f6e4"/>
+  <path d="M74 76l10 10 20-24" fill="none" stroke="#f8fafc" stroke-linecap="round" stroke-linejoin="round" stroke-width="10"/>
+</svg>
