@@ -24,6 +24,12 @@ my $validator = OMOP::CSV::Validator->new();
 
 Parses DDL text and returns a hash reference keyed by lowercase table name.
 
+The parser accepts:
+
+- schema-qualified PostgreSQL table names
+- unqualified table names
+- OHDSI-style placeholder qualifiers such as `@cdmDatabaseSchema.person`
+
 Typical use:
 
 ```perl
@@ -44,6 +50,10 @@ Derives the table name from the CSV basename and returns the matching schema.
 Reads a CSV file, coerces numeric-looking values where configured, validates each row, and returns an array reference of validation errors.
 
 `$sep` is optional and defaults to `,`.
+
+The returned error entries use data-row numbering. The first row after the CSV header is row `1`.
+
+The validator also normalizes OMOP-style `\N` markers to null values before validation.
 
 ## Numeric coercion helper
 

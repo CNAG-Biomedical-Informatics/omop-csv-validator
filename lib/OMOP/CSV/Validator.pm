@@ -3,14 +3,13 @@ package OMOP::CSV::Validator;
 use strict;
 use warnings;
 use utf8;
-use JSON::XS;
 use JSON::Validator;
 use Text::CSV_XS;
 use Scalar::Util qw(looks_like_number);
 use Path::Tiny;
-use Data::Dumper;
 
 our $VERSION = '0.03';
+our @DETECTABLE_SEPARATORS = ( ',', "\t", ';', '|' );
 
 =head1 NAME
 
@@ -80,9 +79,13 @@ sub _ddl_to_json_schemas {
     my %schemas;
     while (
         $ddl_text =~ /
-        CREATE\s+TABLE\s+\S+\.(\w+)\s*\(   # capture table name (after schema qualifier)
+        CREATE\s+TABLE\s+
+        (?:
+            [^\s(]+?\.
+        )?
+        "?(\w+)"?\s*\(                    # capture table name with optional schema qualifier
         (.*?)                             # capture everything inside parentheses
-        \)\s*;                           # until the closing parenthesis and semicolon
+        \)\s*;                            # until the closing parenthesis and semicolon
     /gisx
       )
     {
@@ -114,7 +117,7 @@ sub _build_schema {
         next if $line =~ /^--/;            # Skip comment lines
 
         if ( $line =~
-            /^(\w+)\s+([A-Za-z]+)(?:\((\d+(?:,\d+)?)\))?(?:\s+(NOT NULL))?/i )
+            /^"?(\w+)"?\s+([A-Za-z]+)(?:\((\d+(?:,\d+)?)\))?(?:\s+(NOT NULL))?/i )
         {
             my ( $col, $type, $length, $notnull ) =
               ( lc $1, lc $2, $3, defined $4 );
@@ -171,8 +174,7 @@ sub _build_schema {
 ##########################################################################
 sub get_schema_from_csv_filename {
     my ( $self, $csv_filename, $schemas ) = @_;
-    ( my $table = lc $csv_filename ) =~ s{^.*/}{};      # remove any path
-    $table =~ s/\.csv$//i;                              # remove .csv extension
+    my $table = $self->_table_name_from_csv_filename($csv_filename);
     return $schemas->{$table};
 }
 
@@ -185,47 +187,249 @@ sub get_schema_from_csv_filename {
 ##########################################################################
 sub validate_csv_file {
     my ( $self, $csv_file, $schema, $sep ) = @_;
-    $sep //= ',';
+    my $analysis = $self->_analyze_csv_file( $csv_file, $schema, $sep );
+    return [
+        map {
+            {
+                row    => $_->{row},
+                errors => $_->{errors},
+            }
+        } grep { @{ $_->{errors} } } @{ $analysis->{rows} }
+    ];
+}
 
+##########################################################################
+# normalize_csv_value($val)
+#
+# Normalizes CSV null markers to undef.
+##########################################################################
+sub _table_name_from_csv_filename {
+    my ( $self, $csv_filename ) = @_;
+    ( my $table = lc $csv_filename ) =~ s{^.*/}{};      # remove any path
+    $table =~ s/\.csv$//i;                              # remove .csv extension
+    return $table;
+}
+
+##########################################################################
+# _build_json_validator($schema)
+#
+# Returns a JSON::Validator instance for a pre-built schema.
+##########################################################################
+sub _build_json_validator {
+    my ( $self, $schema ) = @_;
+    my $validator = JSON::Validator->new;
+    $validator->schema($schema);
+    return $validator;
+}
+
+##########################################################################
+# _csv_parser_for_sep($sep)
+#
+# Returns a Text::CSV_XS parser configured for a separator.
+##########################################################################
+sub _csv_parser_for_sep {
+    my ( $self, $sep, %args ) = @_;
+    my $csv = Text::CSV_XS->new(
+        {
+            binary         => 1,
+            sep_char       => $sep,
+            auto_diag      => $args{auto_diag} // 1,
+            blank_is_undef => 1,
+        }
+    );
+    die "Cannot use CSV: " . Text::CSV_XS->error_diag() unless $csv;
+    return $csv;
+}
+
+##########################################################################
+# _sample_csv_lines($csv_file, $max_lines)
+#
+# Returns up to $max_lines non-empty lines for separator detection.
+##########################################################################
+sub _sample_csv_lines {
+    my ( $self, $csv_file, $max_lines ) = @_;
+    $max_lines //= 6;
+
+    my $handle = path($csv_file)->openr_utf8;
+    my @lines;
+    while ( defined( my $line = <$handle> ) ) {
+        next if $line =~ /^\s*$/;
+        chomp $line;
+        push @lines, $line;
+        last if @lines >= $max_lines;
+    }
+    $handle->close;
+    return \@lines;
+}
+
+##########################################################################
+# _candidate_score_for_sep($lines, $sep)
+#
+# Scores a separator candidate based on consistent parsed column counts.
+##########################################################################
+sub _candidate_score_for_sep {
+    my ( $self, $lines, $sep ) = @_;
+    my $parser = eval { $self->_csv_parser_for_sep( $sep, auto_diag => 0 ) };
+    return undef if !$parser;
+
+    my @counts;
+    for my $line ( @{$lines} ) {
+        my $ok = $parser->parse($line);
+        return undef if !$ok;
+        my @fields = $parser->fields();
+        return undef if !@fields;
+        push @counts, scalar(@fields);
+    }
+
+    my $header_count = $counts[0];
+    return undef if !defined $header_count || $header_count < 2;
+
+    for my $count (@counts) {
+        return undef if $count != $header_count;
+    }
+
+    return {
+        sep         => $sep,
+        column_count => $header_count,
+        sample_rows  => scalar(@counts),
+    };
+}
+
+##########################################################################
+# detect_csv_separator($csv_file)
+#
+# Attempts to infer the separator from a small file sample.
+##########################################################################
+sub detect_csv_separator {
+    my ( $self, $csv_file ) = @_;
+    my $lines = $self->_sample_csv_lines($csv_file);
+    die "Input CSV has no header row\n" unless @{$lines};
+
+    my @candidates =
+      grep { defined $_ }
+      map { $self->_candidate_score_for_sep( $lines, $_ ) } @DETECTABLE_SEPARATORS;
+
+    die "Could not infer a field separator for '$csv_file'. Please pass --sep explicitly.\n"
+      unless @candidates;
+
+    @candidates = sort {
+             $b->{column_count} <=> $a->{column_count}
+          || $b->{sample_rows}  <=> $a->{sample_rows}
+    } @candidates;
+
+    my $best = $candidates[0];
+    my @tied = grep {
+           $_->{column_count} == $best->{column_count}
+        && $_->{sample_rows}  == $best->{sample_rows}
+    } @candidates;
+
+    die "Ambiguous field separator for '$csv_file'. Please pass --sep explicitly.\n"
+      if @tied > 1;
+
+    return $best->{sep};
+}
+
+##########################################################################
+# _read_csv_data($csv_file, $sep)
+#
+# Reads a CSV file and returns an arrayref of hashrefs keyed by the header row.
+##########################################################################
+sub _read_csv_data {
+    my ( $self, $csv_file, $sep ) = @_;
+    $sep = defined $sep ? $sep : $self->detect_csv_separator($csv_file);
     my $csv_handle = path($csv_file)->openr_utf8;
-    my $csv =
-      Text::CSV_XS->new(
-        { binary => 1, sep_char => $sep, auto_diag => 1, blank_is_undef => 1 } )
-      or die "Cannot use CSV: " . Text::CSV_XS->error_diag();
+    my $csv = $self->_csv_parser_for_sep($sep);
 
-    my $header = $csv->getline($csv_handle);
+    my $header = $csv->getline($csv_handle)
+      or die "Input CSV has no header row\n";
     $csv->column_names(@$header);
 
     my $records = $csv->getline_hr_all($csv_handle);
     $csv_handle->close;
+    return {
+        header  => $header,
+        records => $records,
+    };
+}
 
-    my @errors;
-    my $validator = JSON::Validator->new;
-    $validator->schema($schema);
+##########################################################################
+# _analyze_csv_file($csv_file, $schema, $sep)
+#
+# Reads a CSV file and returns header + per-row validation results.
+##########################################################################
+sub _analyze_csv_file {
+    my ( $self, $csv_file, $schema, $sep ) = @_;
+    die "Schema is required for CSV validation\n"
+      unless defined $schema && ref($schema) eq 'HASH';
 
-    for my $i ( 0 .. $#$records ) {
-        my $record = $records->[$i];
+    my $csv_data   = $self->_read_csv_data( $csv_file, $sep );
+    my $validator  = $self->_build_json_validator($schema);
+    my @row_results;
 
-        # Coerce numeric fields according to the schema.
-        for my $col ( keys %{ $schema->{properties} } ) {
-            if ( exists $record->{$col} ) {
-                my $prop = $schema->{properties}->{$col};
-                if ( defined $prop->{_coerce} && $prop->{_coerce} ) {
-                    $record->{$col} =
-                      $self->dotify_and_coerce_number( $record->{$col} );
-                }
-            }
-        }
+    for my $i ( 0 .. $#{ $csv_data->{records} } ) {
+        my $raw_record =
+          { %{ $csv_data->{records}->[$i] } };
+        my $record =
+          $self->_normalize_record_for_schema( $csv_data->{records}->[$i], $schema );
+        my $errs = $self->_validation_messages_for_record( $validator, $record );
 
-        # Validate
-        my $errs = [ $validator->validate($record) ];
-        if (@$errs) {
+        push @row_results,
+          {
+            row    => $i + 1,
+            ok     => @$errs ? 0 : 1,
+            raw    => $raw_record,
+            errors => $errs,
+          };
+    }
 
-            # row number excludes header → row index + 1
-            push @errors, { row => $i + 1, errors => $errs };
+    return {
+        header => $csv_data->{header},
+        rows   => \@row_results,
+    };
+}
+
+##########################################################################
+# _normalize_record_for_schema($record, $schema)
+#
+# Applies null normalization and numeric coercion according to the schema.
+##########################################################################
+sub _normalize_record_for_schema {
+    my ( $self, $record, $schema ) = @_;
+    my %normalized = %{$record};
+
+    for my $col ( keys %{ $schema->{properties} } ) {
+        next unless exists $normalized{$col};
+        my $prop = $schema->{properties}->{$col};
+        $normalized{$col} = $self->normalize_csv_value( $normalized{$col} );
+        if ( defined $prop->{_coerce} && $prop->{_coerce} ) {
+            $normalized{$col} =
+              $self->dotify_and_coerce_number( $normalized{$col} );
         }
     }
-    return \@errors;
+
+    return \%normalized;
+}
+
+##########################################################################
+# _validation_messages_for_record($validator, $record)
+#
+# Returns stringified validation messages for a record.
+##########################################################################
+sub _validation_messages_for_record {
+    my ( $self, $validator, $record ) = @_;
+    return [ map { "$_" } $validator->validate($record) ];
+}
+
+##########################################################################
+# normalize_csv_value($val)
+#
+# Converts CSV null markers to undef.
+##########################################################################
+sub normalize_csv_value {
+    my ( $self, $val ) = @_;
+    return undef unless defined $val;
+    return undef if $val eq '\\N';
+    return $val;
 }
 
 ##########################################################################

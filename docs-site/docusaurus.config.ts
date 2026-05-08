@@ -6,9 +6,9 @@ const config: Config = {
   title: 'OMOP CSV Validator Docs',
   tagline: 'Focused documentation for validating OMOP CSV extracts against DDL-derived schemas',
   favicon: 'img/omop-csv-validator-logo.png',
-  url: 'https://mrueda.github.io',
+  url: 'https://cnag-biomedical-informatics.github.io',
   baseUrl: '/omop-csv-validator/',
-  organizationName: 'mrueda',
+  organizationName: 'CNAG-Biomedical-Informatics',
   projectName: 'omop-csv-validator',
   onBrokenLinks: 'throw',
   i18n: {
@@ -48,7 +48,7 @@ const config: Config = {
           label: 'Docs',
         },
         {
-          href: 'https://github.com/mrueda/omop-csv-validator',
+          href: 'https://github.com/CNAG-Biomedical-Informatics/omop-csv-validator',
           label: 'GitHub',
           position: 'right',
         },
@@ -71,7 +71,7 @@ const config: Config = {
           items: [
             {
               label: 'Repository',
-              href: 'https://github.com/mrueda/omop-csv-validator',
+              href: 'https://github.com/CNAG-Biomedical-Informatics/omop-csv-validator',
             },
             {
               label: 'CPAN',

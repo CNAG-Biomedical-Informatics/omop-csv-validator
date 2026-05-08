@@ -15,9 +15,7 @@ Fix it by either:
 
 ## Wrong separator
 
-If the file is tab-separated but you leave the default comma separator, the header and rows will parse incorrectly.
-
-Use:
+Separator inference usually works automatically. If the CLI reports an ambiguous separator or parses the file incorrectly, rerun with an explicit override such as:
 
 ```bash
 --sep $'\t'
@@ -36,15 +34,21 @@ That means date-only strings in timestamp columns can fail validation.
 
 OMOP-style exports often use `\N` as a null marker.
 
-In the current implementation, numeric coercion handles `\N` more cleanly than non-numeric date or timestamp fields. That means nullable non-numeric fields can still produce validation errors when `\N` is present.
+The validator now normalizes `\N` to null values before validation, including nullable date, timestamp, and varchar fields.
 
-Treat this as a known limitation of the current code rather than a docs issue.
+If you still see errors, the most likely cause is that the target column is not nullable in the DDL-derived schema.
 
 ## DDL parsing assumptions
 
 The parser is intentionally simple. It expects PostgreSQL-style `CREATE TABLE` blocks and is not a general SQL parser.
 
-Be cautious if your DDL differs in formatting, qualification style, or complexity.
+It does handle common OMOP forms such as:
+
+- schema-qualified names like `public.person`
+- placeholder-qualified names like `@cdmDatabaseSchema.person`
+- unqualified names like `person`
+
+Be cautious if your DDL differs materially from those patterns.
 
 ## Large files and memory
 

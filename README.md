@@ -1,18 +1,18 @@
 <p align="center">
-  <a href="https://github.com/mrueda/omop-csv-validator"><img src="https://raw.githubusercontent.com/mrueda/omop-csv-validator/main/docs-site/static/img/omop-csv-validator-logo.png" width="300" alt="OMOP CSV Validator"></a>
+  <a href="https://github.com/CNAG-Biomedical-Informatics/omop-csv-validator"><img src="https://raw.githubusercontent.com/CNAG-Biomedical-Informatics/omop-csv-validator/main/docs-site/static/img/omop-csv-validator-logo.png" width="300" alt="OMOP CSV Validator"></a>
 </p>
 <p align="center">
   <em>Validate OMOP CDM CSV files against schemas derived from PostgreSQL DDL</em>
 </p>
 
-[![CPAN Publish](https://github.com/mrueda/omop-csv-validator/actions/workflows/cpan-publish.yml/badge.svg)](https://github.com/mrueda/omop-csv-validator/actions/workflows/cpan-publish.yml)
-[![Documentation Status](https://github.com/mrueda/omop-csv-validator/actions/workflows/documentation.yml/badge.svg)](https://github.com/mrueda/omop-csv-validator/actions/workflows/documentation.yml)
+[![CPAN Publish](https://github.com/CNAG-Biomedical-Informatics/omop-csv-validator/actions/workflows/cpan-publish.yml/badge.svg)](https://github.com/CNAG-Biomedical-Informatics/omop-csv-validator/actions/workflows/cpan-publish.yml)
+[![Documentation Status](https://github.com/CNAG-Biomedical-Informatics/omop-csv-validator/actions/workflows/documentation.yml/badge.svg)](https://github.com/CNAG-Biomedical-Informatics/omop-csv-validator/actions/workflows/documentation.yml)
 [![Kwalitee Score](https://cpants.cpanauthors.org/dist/OMOP-CSV-Validator.svg)](https://cpants.cpanauthors.org/dist/OMOP-CSV-Validator)
 [![License](https://img.shields.io/badge/License-Artistic%202.0-0298c3.svg)](https://opensource.org/licenses/Artistic-2.0)
 
 ---
 
-**📘 Documentation:** <a href="https://mrueda.github.io/omop-csv-validator/" target="_blank">https://mrueda.github.io/omop-csv-validator/</a>
+**📘 Documentation:** <a href="https://cnag-biomedical-informatics.github.io/omop-csv-validator/" target="_blank">https://cnag-biomedical-informatics.github.io/omop-csv-validator/</a>
 
 **📦 CPAN Distribution:** <a href="https://metacpan.org/pod/OMOP::CSV::Validator" target="_blank">https://metacpan.org/pod/OMOP::CSV::Validator</a>
 
