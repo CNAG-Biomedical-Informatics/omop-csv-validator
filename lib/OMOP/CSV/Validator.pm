@@ -70,6 +70,20 @@ sub load_schemas_from_ddl {
 }
 
 ##########################################################################
+# load_column_order_from_ddl($ddl_text, $table_name)
+#
+# Parses the ordered column names for one PostgreSQL CREATE TABLE block.
+##########################################################################
+sub load_column_order_from_ddl {
+    my ( $self, $ddl_text, $table_name ) = @_;
+    my $tables = $self->_ddl_to_table_blocks($ddl_text);
+    my $cols_block = $tables->{ lc $table_name };
+    die "Could not find columns for table '$table_name' in the DDL file\n"
+      unless defined $cols_block;
+    return $self->_extract_column_order($cols_block);
+}
+
+##########################################################################
 # _ddl_to_json_schemas($ddl_text) - private
 #
 # Internal subroutine that iterates over all CREATE TABLE blocks.
@@ -77,22 +91,36 @@ sub load_schemas_from_ddl {
 sub _ddl_to_json_schemas {
     my ( $self, $ddl_text ) = @_;
     my %schemas;
+    my $tables = $self->_ddl_to_table_blocks($ddl_text);
+    while ( my ( $table, $cols_block ) = each %{$tables} ) {
+        $schemas{$table} = $self->_build_schema( $table, $cols_block );
+    }
+    return \%schemas;
+}
+
+##########################################################################
+# _ddl_to_table_blocks($ddl_text) - private
+#
+# Returns a hashref of table_name => raw column-definition block.
+##########################################################################
+sub _ddl_to_table_blocks {
+    my ( $self, $ddl_text ) = @_;
+    my %tables;
     while (
         $ddl_text =~ /
         CREATE\s+TABLE\s+
         (?:
             [^\s(]+?\.
         )?
-        "?(\w+)"?\s*\(                    # capture table name with optional schema qualifier
-        (.*?)                             # capture everything inside parentheses
-        \)\s*;                            # until the closing parenthesis and semicolon
+        "?(\w+)"?\s*\(
+        (.*?)
+        \)\s*;
     /gisx
       )
     {
-        my ( $table, $cols_block ) = ( lc $1, $2 );
-        $schemas{$table} = $self->_build_schema( $table, $cols_block );
+        $tables{ lc $1 } = $2;
     }
-    return \%schemas;
+    return \%tables;
 }
 
 ##########################################################################
@@ -111,16 +139,9 @@ sub _build_schema {
         additionalProperties => 0,
     };
 
-    for my $line ( grep /\S/, split /\n/, $cols_block ) {
-        $line         =~ s/^\s+|\s+$//g;
-        $line         =~ s/,$//;
-        next if $line =~ /^--/;            # Skip comment lines
-
-        if ( $line =~
-            /^"?(\w+)"?\s+([A-Za-z]+)(?:\((\d+(?:,\d+)?)\))?(?:\s+(NOT NULL))?/i )
-        {
-            my ( $col, $type, $length, $notnull ) =
-              ( lc $1, lc $2, $3, defined $4 );
+    for my $col_def ( @{ $self->_extract_column_definitions($cols_block) } ) {
+        my ( $col, $type, $length, $notnull ) =
+          @{$col_def}{qw(col type length notnull)};
             my $prop = {};
 
             if ( $type =~ /int/ ) {
@@ -161,9 +182,48 @@ sub _build_schema {
 
             $schema->{properties}{$col} = $prop;
             push @{ $schema->{required} }, $col if $notnull;
-        }
     }
     return $schema;
+}
+
+##########################################################################
+# _extract_column_definitions($cols_block) - private
+#
+# Returns parsed column definitions in DDL order.
+##########################################################################
+sub _extract_column_definitions {
+    my ( $self, $cols_block ) = @_;
+    my @defs;
+
+    for my $line ( grep /\S/, split /\n/, $cols_block ) {
+        $line =~ s/^\s+|\s+$//g;
+        $line =~ s/,$//;
+        next if $line =~ /^--/;
+
+        if ( $line =~
+            /^"?(\w+)"?\s+([A-Za-z]+)(?:\((\d+(?:,\d+)?)\))?(?:\s+(NOT NULL))?/i )
+        {
+            push @defs,
+              {
+                col     => lc $1,
+                type    => lc $2,
+                length  => $3,
+                notnull => defined $4 ? 1 : 0,
+              };
+        }
+    }
+
+    return \@defs;
+}
+
+##########################################################################
+# _extract_column_order($cols_block) - private
+#
+# Returns ordered column names for one CREATE TABLE block.
+##########################################################################
+sub _extract_column_order {
+    my ( $self, $cols_block ) = @_;
+    return [ map { $_->{col} } @{ $self->_extract_column_definitions($cols_block) } ];
 }
 
 ##########################################################################

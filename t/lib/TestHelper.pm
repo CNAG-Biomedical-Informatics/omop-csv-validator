@@ -11,23 +11,16 @@ use IPC::Open3;
 use Path::Tiny;
 use Symbol qw(gensym);
 
-our @EXPORT_OK = qw(write_fixture run_cli_capture run_cli_json slurp_zip_member);
+our @EXPORT_OK = qw(write_fixture run_cli_capture run_cli_json run_reorder_capture slurp_zip_member);
 
-sub write_fixture {
-    my ( $dir, $name, $content ) = @_;
-    my $path = path( $dir, $name );
-    $path->spew_utf8($content);
-    return $path;
-}
-
-sub run_cli_capture {
-    my (@args) = @_;
+sub run_script_capture {
+    my ( $script, @args ) = @_;
     my $stderr = gensym;
     my $pid    = open3(
         undef,
         my $stdout,
         $stderr,
-        'perl', '-Ilib', 'bin/omop-csv-validator', @args
+        'perl', '-Ilib', $script, @args
     );
 
     my $stdout_text = do { local $/; <$stdout> };
@@ -38,11 +31,28 @@ sub run_cli_capture {
     return ( $exit_code, $stdout_text, $stderr_text );
 }
 
+sub write_fixture {
+    my ( $dir, $name, $content ) = @_;
+    my $path = path( $dir, $name );
+    $path->spew_utf8($content);
+    return $path;
+}
+
+sub run_cli_capture {
+    my (@args) = @_;
+    return run_script_capture( 'bin/omop-csv-validator', @args );
+}
+
 sub run_cli_json {
     my (@args) = @_;
     my ( $exit_code, $stdout, $stderr ) = run_cli_capture(@args);
     my $payload = JSON::XS->new->decode($stdout);
     return ( $exit_code, $payload, $stderr );
+}
+
+sub run_reorder_capture {
+    my (@args) = @_;
+    return run_script_capture( 'utils/reorder-csv.pl', @args );
 }
 
 sub slurp_zip_member {
