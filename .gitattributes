@@ -1,0 +1,3 @@
+docs-site/**/*.ts linguist-vendored
+docs-site/**/*.tsx linguist-vendored
+docs-site/**/*.css linguist-vendored
