@@ -1,0 +1,37 @@
+name: Build and Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        perl-version:
+          - '5.26'
+          - '5.38'
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: shogo82148/actions-setup-perl@v1
+        with:
+          perl-version: ${{ matrix.perl-version }}
+
+      - name: Install cpanminus
+        run: curl -L https://cpanmin.us | perl - App::cpanminus
+
+      - name: Install project dependencies
+        run: cpanm --notest --installdeps .
+
+      - name: Configure
+        run: perl Makefile.PL
+
+      - name: Run tests
+        run: make test

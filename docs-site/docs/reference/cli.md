@@ -20,13 +20,15 @@ Path to the PostgreSQL DDL file containing `CREATE TABLE` definitions.
 
 Path to the input CSV file to validate.
 
+The CLI accepts one CSV file per run. It does not take multiple OMOP tables in a single invocation.
+
 ## Optional options
 
-### `--sep`
+:::warning `--sep` is a fallback option
+The validator normally infers the separator from the input file.
 
-CSV field separator. Defaults to `,`.
-
-Use `--sep $'\t'` for tab-separated files.
+Use `--sep` only when you want to override detection explicitly or when the file is ambiguous, for example `--sep $'\t'`.
+:::
 
 ### `--table`, `-t`
 
@@ -40,6 +42,48 @@ Write the generated schema set to a JSON file.
 
 Disable ANSI color output.
 
+### `--json`
+
+Emit a machine-readable JSON result object instead of the default human-readable output.
+
+This is the recommended mode for R or other automation clients.
+
+### `--report-tsv`
+
+Write a tab-separated validation report that spreadsheet users can open directly in Excel or LibreOffice.
+
+The report keeps the original input columns and appends these validation columns:
+
+- `_validation_row`
+- `_validation_status`
+- `_validation_error_count`
+- `_validation_messages`
+
+Use this when you want to sort, filter, or review failing rows in a spreadsheet.
+
+The report is TSV, not native `.xlsx`, so it does not carry Excel cell colors by itself.
+
+When this mode is enabled, the CLI keeps stdout compact on validation failure and does not print the full row-by-row error listing.
+
+### `--report-xlsx`
+
+Write a native Excel workbook with two sheets:
+
+- `Summary`
+- `Validation`
+
+The `Validation` sheet keeps the original input columns and appends the same `_validation_*` columns used in the TSV report.
+
+This mode also adds spreadsheet-oriented presentation:
+
+- colored `OK` and `ERROR` status cells
+- conditional row coloring in the validation sheet
+- frozen header row and autofilter
+
+Use this when your reviewers work primarily in Excel and want a ready-to-open workbook instead of plain text output.
+
+When this mode is enabled, the CLI keeps stdout compact on validation failure and does not print the full row-by-row error listing.
+
 ### `--help`, `-h`
 
 Show the built-in help text.
@@ -52,4 +96,38 @@ Show the CLI version.
 
 - exits `0` when validation succeeds
 - exits `1` when validation errors are found
-- dies early if required inputs are missing or a schema cannot be found
+- in `--json` mode, exits `2` for fatal setup errors such as a missing schema
+
+## JSON output shape
+
+When `--json` is enabled, the CLI writes one top-level result object with these fields:
+
+- `input_file`
+- `schema_name`
+- `ok`
+- `error_count`
+- `row_errors`
+
+For fatal setup errors, the object also includes:
+
+- `fatal_error`
+
+Each `row_errors` entry includes:
+
+- `row`
+- `messages`
+
+## JSON contract stability
+
+Treat `--json` as the supported automation interface for this tool.
+
+That means the following are intended to remain stable for R, Python, and workflow clients:
+
+- the top-level JSON object shape
+- the documented keys
+- the row-level `row` and `messages` fields
+- exit code `0` for success
+- exit code `1` for validation failures
+- exit code `2` for fatal setup errors
+
+Human-readable output is intended for interactive use and may change more freely than the JSON mode.

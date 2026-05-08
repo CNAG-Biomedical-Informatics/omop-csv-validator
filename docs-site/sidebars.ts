@@ -9,6 +9,9 @@ const sidebars: SidebarsConfig = {
       items: [
         'user-guide/installation',
         'user-guide/validate-a-csv',
+        'user-guide/spreadsheet-reports',
+        'user-guide/use-from-r',
+        'user-guide/use-from-python',
         'user-guide/worked-example',
       ],
     },
