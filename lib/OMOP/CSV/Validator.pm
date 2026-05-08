@@ -8,7 +8,7 @@ use Text::CSV_XS;
 use Scalar::Util qw(looks_like_number refaddr);
 use Path::Tiny;
 
-our $VERSION = '0.04';
+our $VERSION = '0.04_1';
 our @DETECTABLE_SEPARATORS = ( ',', "\t", ';', '|' );
 
 =head1 NAME
