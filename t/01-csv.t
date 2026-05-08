@@ -130,6 +130,23 @@ ok(
     'Schema loading accepts CREATE TABLE definitions with placeholder schema qualifier'
 );
 
+my $column_order = $validator->load_column_order_from_ddl( $ddl_text, 'person' );
+is_deeply(
+    [ @{$column_order}[ 0 .. 3 ] ],
+    [ qw(person_id gender_concept_id year_of_birth month_of_birth) ],
+    'Column-order extraction preserves DDL order'
+);
+
+my $misc_schemas = $validator->load_schemas_from_ddl( $sections{DDL_misc_types_and_comments} );
+ok(
+    exists $misc_schemas->{misc_table}{properties}{custom_text},
+    'Schema loading keeps string-like columns from mixed DDL blocks'
+);
+ok(
+    !exists $misc_schemas->{misc_table}{properties}{primary},
+    'Schema loading ignores non-column lines such as constraints'
+);
+
 my $dir = tempdir( CLEANUP => 1 );
 my $headerless_path = write_fixture( $dir, 'HEADERLESS.csv', '' );
 my $missing_schema_error = eval {
@@ -166,6 +183,27 @@ like(
     $@,
     qr/Ambiguous field separator/,
     'Validation fails cleanly when separator inference is ambiguous'
+);
+
+my $uninferable_path = write_fixture( $dir, 'UNINFERABLE.csv', $sections{CSV_uninferable_separator} );
+my $uninferable_error = eval {
+    $validator->detect_csv_separator( $uninferable_path->stringify );
+    1;
+};
+like(
+    $@,
+    qr/Could not infer a field separator/,
+    'Separator detection fails cleanly when no candidate produces a usable table shape'
+);
+
+my $missing_order_error = eval {
+    $validator->load_column_order_from_ddl( $ddl_text, 'missing_table' );
+    1;
+};
+like(
+    $@,
+    qr/Could not find columns for table 'missing_table'/,
+    'Column-order extraction fails cleanly for unknown tables'
 );
 
 done_testing();
@@ -226,6 +264,15 @@ CREATE TABLE public.null_test (
 );
 __END_DDL_nullable_fields__
 
+__DDL_misc_types_and_comments__
+CREATE TABLE public.misc_table (
+    row_id integer NOT NULL,
+    -- comment line that should be ignored
+    custom_text text NULL,
+    PRIMARY KEY (row_id)
+);
+__END_DDL_misc_types_and_comments__
+
 __CSV_person_valid__
 person_id,gender_concept_id,year_of_birth,month_of_birth,day_of_birth,birth_datetime,race_concept_id,ethnicity_concept_id,location_id,provider_id,care_site_id,person_source_value,gender_source_value,gender_source_concept_id,race_source_value,race_source_concept_id,ethnicity_source_value,ethnicity_source_concept_id
 1,8532,1963,12,31,"1966-12-31T00:00:00Z",8516,0,\N,\N,\N,source1,F,0,black,0,west_indian,0
@@ -270,3 +317,8 @@ __CSV_ambiguous_separator__
 person_id,gender_concept_id;year_of_birth|person_source_value
 1,8532;1963|source1
 __END_CSV_ambiguous_separator__
+
+__CSV_uninferable_separator__
+single_column
+value1
+__END_CSV_uninferable_separator__

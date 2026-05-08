@@ -73,6 +73,26 @@ is( $json_valid_payload->{ok}, 1, 'JSON mode reports success' );
 is( $json_valid_payload->{error_count}, 0, 'JSON mode reports zero row errors' );
 is( $json_valid_payload->{schema_name}, 'PERSON', 'JSON mode includes inferred schema name' );
 
+my ( $human_success_exit, $human_success_stdout, $human_success_stderr ) = run_cli_capture(
+    '--ddl',      $ddl_path->stringify,
+    '--input',    $valid_path->stringify,
+    '--no-color',
+);
+is( $human_success_exit, 0, 'Human mode exits 0 on valid CSV' );
+like( $human_success_stdout, qr/is valid against the 'PERSON' schema/, 'Human mode prints a readable success message' );
+
+my ( $help_exit, $help_stdout, $help_stderr ) = run_cli_capture('--help');
+is( $help_exit, 1, '--help exits through pod2usage' );
+like( $help_stdout, qr/Usage:/, '--help prints usage text' );
+
+my ( $version_exit, $version_stdout, $version_stderr ) = run_cli_capture('--version');
+is( $version_exit, 0, '--version exits 0' );
+like( $version_stdout, qr/Version 0\.03/, '--version prints the CLI version' );
+
+my ( $missing_args_exit, $missing_args_stdout, $missing_args_stderr ) = run_cli_capture();
+is( $missing_args_exit, 1, 'Missing required arguments exits 1' );
+like( $missing_args_stderr, qr/--ddl and --input are required parameters/, 'Missing required arguments print a readable error' );
+
 my ( $json_invalid_exit, $json_invalid_payload ) = run_cli_json(
     '--ddl',   $invalid_ddl_path->stringify,
     '--input', $invalid_path->stringify,
@@ -227,6 +247,16 @@ if ($has_xlsx_writer) {
         $validation_sheet_xml,
         qr/conditionalFormatting/,
         'XLSX validation sheet includes conditional formatting for spreadsheet review'
+    );
+
+    my $missing_zip_member_error = eval {
+        slurp_zip_member( $xlsx_report_path->stringify, 'xl/worksheets/missing.xml' );
+        1;
+    };
+    like(
+        $@,
+        qr/Archive member 'xl\/worksheets\/missing\.xml' not found/,
+        'ZIP helper fails cleanly when a requested workbook member is absent'
     );
 }
 else {
