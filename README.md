@@ -9,7 +9,7 @@
 [![Documentation Status](https://github.com/CNAG-Biomedical-Informatics/omop-csv-validator/actions/workflows/documentation.yml/badge.svg)](https://github.com/CNAG-Biomedical-Informatics/omop-csv-validator/actions/workflows/documentation.yml)
 [![Coverage Status](https://coveralls.io/repos/github/CNAG-Biomedical-Informatics/omop-csv-validator/badge.svg?branch=main)](https://coveralls.io/github/CNAG-Biomedical-Informatics/omop-csv-validator?branch=main)
 [![Kwalitee Score](https://cpants.cpanauthors.org/dist/OMOP-CSV-Validator.svg)](https://cpants.cpanauthors.org/dist/OMOP-CSV-Validator)
-![version](https://img.shields.io/badge/version-0.04-blue)
+![version](https://img.shields.io/badge/version-0.04[0m-blue)
 [![License](https://img.shields.io/badge/License-Artistic%202.0-0298c3.svg)](https://opensource.org/licenses/Artistic-2.0)
 
 ---
@@ -35,12 +35,35 @@ Full project documentation lives in the Docusaurus site under [docs-site](docs-s
 - [Implementation](docs-site/docs/implementation/overview.md)
 - [Troubleshooting](docs-site/docs/troubleshooting/common-issues.md)
 
-## Quick start
+## Installation
 
-Install dependencies and run the validator:
+Install the packaged release from CPAN:
 
 ```bash
+cpanm -n OMOP::CSV::Validator
+```
+
+If you want the latest repository checkout instead:
+
+```bash
+git clone https://github.com/CNAG-Biomedical-Informatics/omop-csv-validator.git
+cd omop-csv-validator
 cpanm -n --installdeps .
+```
+
+## Quick start
+
+If you installed from CPAN:
+
+```bash
+omop-csv-validator \
+  --ddl path/to/OMOPCDM_postgresql_5.4_ddl.sql \
+  --input path/to/DRUG_EXPOSURE.csv
+```
+
+If you are running from a repository checkout:
+
+```bash
 bin/omop-csv-validator \
   --ddl ddl/OMOPCDM_postgresql_5.4_ddl.sql \
   --input example/DRUG_EXPOSURE.csv

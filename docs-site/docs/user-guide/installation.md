@@ -4,7 +4,19 @@ sidebar_position: 1
 
 # Installation
 
-## Perl dependencies
+## Install from CPAN
+
+If you want the packaged release, install it directly from CPAN:
+
+```bash
+cpanm -n OMOP::CSV::Validator
+```
+
+This is the simplest path if you only want to use the validator.
+
+## Install from Git
+
+Use the repository checkout if you want the latest development version, the docs site, or the full test suite.
 
 This project uses `cpanm` and the repository `cpanfile`.
 
@@ -20,11 +32,11 @@ If your system is missing standard build tooling, install that first:
 sudo apt-get install gcc make libperl-dev
 ```
 
-## Local dependency install
-
-Inside the repository:
+Clone the repository and install its dependencies:
 
 ```bash
+git clone https://github.com/CNAG-Biomedical-Informatics/omop-csv-validator.git
+cd omop-csv-validator
 cpanm -n --installdeps .
 ```
 
@@ -35,23 +47,21 @@ cpanm --local-lib=~/perl5 local::lib
 eval "$(perl -I ~/perl5/lib/perl5/ -Mlocal::lib)"
 ```
 
-## Install from CPAN
-
-If you want the packaged release instead of the repository checkout:
-
-```bash
-cpanm -n OMOP::CSV::Validator
-```
-
 ## Validate the install
 
-Run the bundled test suite:
+If you installed from a repository checkout, run the bundled test suite:
 
 ```bash
 prove -l t/
 ```
 
 Print the CLI version:
+
+```bash
+omop-csv-validator --version
+```
+
+If you are running from a repository checkout without installing the CLI into your `PATH`, use:
 
 ```bash
 bin/omop-csv-validator --version
