@@ -1,37 +1,31 @@
-name: Build and Test
+name: Build and test
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-  pull_request:
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        perl-version:
-          - '5.26'
-          - '5.38'
-
+        os: ['ubuntu-latest', 'macos-latest']
+        perl: ['5.42', '5.40', '5.38', '5.36', '5.34', '5.32', '5.30']
+    name: Perl ${{ matrix.perl }} on ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5
-
-      - uses: shogo82148/actions-setup-perl@v1
+      - name: Set up Perl
+        uses: shogo82148/actions-setup-perl@v1
         with:
-          perl-version: ${{ matrix.perl-version }}
-
-      - name: Install cpanminus
-        run: curl -L https://cpanmin.us | perl - App::cpanminus
-
-      - name: Install project dependencies
-        run: cpanm --notest --installdeps .
-
-      - name: Configure
-        run: perl Makefile.PL
-
-      - name: Run tests
-        run: make test
+          perl-version: ${{ matrix.perl }}
+      - run: perl -V
+      - run: cpanm -n --installdeps .
+      - run: prove -l t
+      - name: Run tests with coverage
+        if: ${{ matrix.perl == '5.30' && matrix.os == 'ubuntu-latest' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          perl Makefile.PL
+          cpanm -n Devel::Cover::Report::Coveralls
+          cover -test -report Coveralls

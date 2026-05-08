@@ -10,17 +10,20 @@ use JSON::XS;
 use IPC::Open3;
 use Path::Tiny;
 use Symbol qw(gensym);
+use Text::ParseWords qw(shellwords);
 
 our @EXPORT_OK = qw(write_fixture run_cli_capture run_cli_json run_reorder_capture slurp_zip_member);
 
 sub run_script_capture {
     my ( $script, @args ) = @_;
     my $stderr = gensym;
+    my @perl_switches =
+      $ENV{HARNESS_PERL_SWITCHES} ? shellwords( $ENV{HARNESS_PERL_SWITCHES} ) : ();
     my $pid    = open3(
         undef,
         my $stdout,
         $stderr,
-        'perl', '-Ilib', $script, @args
+        'perl', @perl_switches, '-Ilib', $script, @args
     );
 
     my $stdout_text = do { local $/; <$stdout> };

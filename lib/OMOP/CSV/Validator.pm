@@ -199,6 +199,7 @@ sub _extract_column_definitions {
         $line =~ s/^\s+|\s+$//g;
         $line =~ s/,$//;
         next if $line =~ /^--/;
+        next if $line =~ /^(?:primary|foreign|unique|constraint)\b/i;
 
         if ( $line =~
             /^"?(\w+)"?\s+([A-Za-z]+)(?:\((\d+(?:,\d+)?)\))?(?:\s+(NOT NULL))?/i )
