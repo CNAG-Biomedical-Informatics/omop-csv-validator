@@ -1,19 +1,30 @@
+<p align="center">
+  <a href="https://github.com/mrueda/omop-csv-validator"><img src="https://raw.githubusercontent.com/mrueda/omop-csv-validator/main/docs-site/static/img/omop-csv-validator-logo.png" width="300" alt="OMOP CSV Validator"></a>
+</p>
+<p align="center">
+  <em>Validate OMOP CDM CSV files against schemas derived from PostgreSQL DDL</em>
+</p>
+
+[![CPAN Publish](https://github.com/mrueda/omop-csv-validator/actions/workflows/cpan-publish.yml/badge.svg)](https://github.com/mrueda/omop-csv-validator/actions/workflows/cpan-publish.yml)
+[![Documentation Status](https://github.com/mrueda/omop-csv-validator/actions/workflows/documentation.yml/badge.svg)](https://github.com/mrueda/omop-csv-validator/actions/workflows/documentation.yml)
+[![Kwalitee Score](https://cpants.cpanauthors.org/dist/OMOP-CSV-Validator.svg)](https://cpants.cpanauthors.org/dist/OMOP-CSV-Validator)
+[![License](https://img.shields.io/badge/License-Artistic%202.0-0298c3.svg)](https://opensource.org/licenses/Artistic-2.0)
+
+---
+
+**📘 Documentation:** <a href="https://mrueda.github.io/omop-csv-validator/" target="_blank">https://mrueda.github.io/omop-csv-validator/</a>
+
+**📦 CPAN Distribution:** <a href="https://metacpan.org/pod/OMOP::CSV::Validator" target="_blank">https://metacpan.org/pod/OMOP::CSV::Validator</a>
+
+---
+
 # OMOP CSV Validator
 
 OMOP CSV Validator is a small Perl CLI and module for validating OMOP CDM CSV files against schemas derived from PostgreSQL DDL.
 
-## What it does
-
-- parses `CREATE TABLE` definitions from OMOP DDL
-- derives JSON Schema-like validation rules from those tables
-- validates CSV rows against the inferred schema
-- exposes both a CLI and a reusable Perl module
-
 ## Documentation
 
-Project documentation now lives in the local Docusaurus site under [docs-site](docs-site/README.md).
-
-Main entry points:
+Full project documentation lives in the Docusaurus site under [docs-site](docs-site/README.md).
 
 - [Docs overview](docs-site/docs/overview.md)
 - [Installation](docs-site/docs/user-guide/installation.md)
@@ -23,31 +34,23 @@ Main entry points:
 
 ## Quick start
 
-Install dependencies:
+Install dependencies and run the validator:
 
 ```bash
 cpanm -n --installdeps .
-```
-
-Validate a CSV file:
-
-```bash
 bin/omop-csv-validator \
   --ddl ddl/OMOPCDM_postgresql_5.4_ddl.sql \
   --input example/DRUG_EXPOSURE.csv \
   --sep $'\t'
 ```
 
-Run tests:
+## Tests
+
+Run the test suite:
 
 ```bash
 prove -l t/
 ```
-
-## Notes
-
-- The validator is currently geared toward PostgreSQL-style OMOP DDL files.
-- Some edge cases and behavioral caveats are documented explicitly in the troubleshooting pages instead of being hidden in the README.
 
 ## License
 
