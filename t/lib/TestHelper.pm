@@ -23,7 +23,7 @@ sub run_script_capture {
         undef,
         my $stdout,
         $stderr,
-        'perl', @perl_switches, '-Ilib', $script, @args
+        $^X, @perl_switches, '-Ilib', $script, @args
     );
 
     my $stdout_text = do { local $/; <$stdout> };
@@ -49,7 +49,9 @@ sub run_cli_capture {
 sub run_cli_json {
     my (@args) = @_;
     my ( $exit_code, $stdout, $stderr ) = run_cli_capture(@args);
-    my $payload = JSON::XS->new->decode($stdout);
+    my $payload = eval { JSON::XS->new->decode($stdout) };
+    die "Could not decode CLI JSON output (exit $exit_code): $@\nSTDOUT:\n$stdout\nSTDERR:\n$stderr\n"
+      if $@;
     return ( $exit_code, $payload, $stderr );
 }
 
