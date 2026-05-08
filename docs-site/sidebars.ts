@@ -26,6 +26,14 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
+      label: 'Implementation',
+      items: [
+        'implementation/overview',
+        'implementation/benchmark',
+      ],
+    },
+    {
+      type: 'category',
       label: 'Troubleshooting',
       items: ['troubleshooting/common-issues'],
     },

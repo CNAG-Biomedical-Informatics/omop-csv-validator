@@ -5,10 +5,10 @@ use warnings;
 use utf8;
 use JSON::Validator;
 use Text::CSV_XS;
-use Scalar::Util qw(looks_like_number);
+use Scalar::Util qw(looks_like_number refaddr);
 use Path::Tiny;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 our @DETECTABLE_SEPARATORS = ( ',', "\t", ';', '|' );
 
 =head1 NAME
@@ -54,7 +54,7 @@ OMOP::CSV::Validator is a CLI tool and Perl module designed to validate OMOP Com
 ##########################################################################
 sub new {
     my ( $class, %args ) = @_;
-    my $self = bless {}, $class;
+    my $self = bless { _runtime_plan_cache => {} }, $class;
     return $self;
 }
 
@@ -247,16 +247,26 @@ sub get_schema_from_csv_filename {
 # hashref with keys 'row' and 'errors').
 ##########################################################################
 sub validate_csv_file {
-    my ( $self, $csv_file, $schema, $sep ) = @_;
-    my $analysis = $self->_analyze_csv_file( $csv_file, $schema, $sep );
-    return [
-        map {
-            {
-                row    => $_->{row},
-                errors => $_->{errors},
-            }
-        } grep { @{ $_->{errors} } } @{ $analysis->{rows} }
-    ];
+    my ( $self, $csv_file, $schema, $sep, @rest ) = @_;
+    my %options =
+      @rest == 1 && ref( $rest[0] ) eq 'HASH' ? %{ $rest[0] } : @rest;
+    my @errors;
+    $self->_stream_csv_rows(
+        $csv_file,
+        $schema,
+        $sep,
+        validation_mode => $options{validation_mode},
+        on_row => sub {
+            my ($row_result) = @_;
+            push @errors,
+              {
+                row    => $row_result->{row},
+                errors => $row_result->{errors},
+              }
+              if @{ $row_result->{errors} };
+        },
+    );
+    return \@errors;
 }
 
 ##########################################################################
@@ -281,6 +291,72 @@ sub _build_json_validator {
     my $validator = JSON::Validator->new;
     $validator->schema($schema);
     return $validator;
+}
+
+##########################################################################
+# _build_runtime_plan($schema, $validation_mode)
+#
+# Compiles per-schema normalization metadata and a validation backend.
+##########################################################################
+sub _build_runtime_plan {
+    my ( $self, $schema, $validation_mode ) = @_;
+    $validation_mode ||= 'json';
+    die "Unsupported validation mode '$validation_mode'\n"
+      unless $validation_mode eq 'json' || $validation_mode eq 'turbo';
+
+    my $schema_id = refaddr($schema);
+    if ($schema_id) {
+        my $cached = $self->{_runtime_plan_cache}{$validation_mode}{$schema_id};
+        return $cached if $cached;
+    }
+
+    my @required = @{ $schema->{required} || [] };
+    my %required = map { $_ => 1 } @required;
+    my %seen;
+    my @ordered_columns = grep { !$seen{$_}++ }
+      ( @required, sort keys %{ $schema->{properties} || {} } );
+
+    my @columns = map {
+        my $name = $_;
+        my $prop = $schema->{properties}{$name} || {};
+        my @types =
+          ref( $prop->{type} ) eq 'ARRAY' ? @{ $prop->{type} } : ( $prop->{type} );
+        my ($base_type) = grep { defined $_ && $_ ne 'null' } @types;
+        $base_type ||= 'string';
+
+        {
+            name       => $name,
+            type       => $base_type,
+            nullable   => scalar( grep { defined $_ && $_ eq 'null' } @types ) ? 1 : 0,
+            required   => $required{$name} ? 1 : 0,
+            coerce     => $prop->{_coerce} ? 1 : 0,
+            max_length => $prop->{maxLength},
+            format     => $prop->{format},
+        };
+    } @ordered_columns;
+
+    my $plan = {
+        mode          => $validation_mode,
+        columns       => \@columns,
+        required      => \@required,
+        allowed       => { map { $_->{name} => 1 } @columns },
+        validator_sub => undef,
+    };
+
+    if ( $validation_mode eq 'turbo' ) {
+        $plan->{validator_sub} = $self->_build_turbo_validator_sub($plan);
+    }
+    else {
+        my $validator = $self->_build_json_validator($schema);
+        $plan->{validator_sub} = sub {
+            my ($record) = @_;
+            return [ map { "$_" } $validator->validate($record) ];
+        };
+    }
+
+    $self->{_runtime_plan_cache}{$validation_mode}{$schema_id} = $plan
+      if $schema_id;
+    return $plan;
 }
 
 ##########################################################################
@@ -391,25 +467,68 @@ sub detect_csv_separator {
 }
 
 ##########################################################################
-# _read_csv_data($csv_file, $sep)
-#
-# Reads a CSV file and returns an arrayref of hashrefs keyed by the header row.
 ##########################################################################
-sub _read_csv_data {
+# _open_csv_stream($csv_file, $sep)
+#
+# Opens a CSV file for row-by-row processing and returns parser state.
+##########################################################################
+sub _open_csv_stream {
     my ( $self, $csv_file, $sep ) = @_;
     $sep = defined $sep ? $sep : $self->detect_csv_separator($csv_file);
     my $csv_handle = path($csv_file)->openr_utf8;
-    my $csv = $self->_csv_parser_for_sep($sep);
+    my $csv        = $self->_csv_parser_for_sep($sep);
 
     my $header = $csv->getline($csv_handle)
       or die "Input CSV has no header row\n";
     $csv->column_names(@$header);
 
-    my $records = $csv->getline_hr_all($csv_handle);
-    $csv_handle->close;
     return {
-        header  => $header,
-        records => $records,
+        csv    => $csv,
+        handle => $csv_handle,
+        header => $header,
+        sep    => $sep,
+    };
+}
+
+##########################################################################
+# _stream_csv_rows($csv_file, $schema, $sep, %callbacks)
+#
+# Reads a CSV file row by row and emits header/row callbacks.
+##########################################################################
+sub _stream_csv_rows {
+    my ( $self, $csv_file, $schema, $sep, %options ) = @_;
+    die "Schema is required for CSV validation\n"
+      unless defined $schema && ref($schema) eq 'HASH';
+
+    my $validation_mode = delete $options{validation_mode} || 'json';
+    my $on_header       = delete $options{on_header};
+    my $on_row          = delete $options{on_row};
+    my $stream          = $self->_open_csv_stream( $csv_file, $sep );
+    my $plan            = $self->_build_runtime_plan( $schema, $validation_mode );
+    my $row_count       = 0;
+
+    $on_header->( $stream->{header} ) if $on_header;
+
+    while ( my $record = $stream->{csv}->getline_hr( $stream->{handle} ) ) {
+        $row_count++;
+        my $raw_record = { %{$record} };
+        my $normalized = $self->_normalize_record_for_plan( $record, $plan );
+        my $errs       = $self->_validation_messages_for_record( $plan, $normalized );
+
+        my $row_result = {
+            row    => $row_count,
+            ok     => @$errs ? 0 : 1,
+            raw    => $raw_record,
+            errors => $errs,
+        };
+
+        $on_row->($row_result) if $on_row;
+    }
+
+    $stream->{handle}->close;
+    return {
+        header   => $stream->{header},
+        row_count => $row_count,
     };
 }
 
@@ -419,52 +538,48 @@ sub _read_csv_data {
 # Reads a CSV file and returns header + per-row validation results.
 ##########################################################################
 sub _analyze_csv_file {
-    my ( $self, $csv_file, $schema, $sep ) = @_;
-    die "Schema is required for CSV validation\n"
-      unless defined $schema && ref($schema) eq 'HASH';
-
-    my $csv_data   = $self->_read_csv_data( $csv_file, $sep );
-    my $validator  = $self->_build_json_validator($schema);
+    my ( $self, $csv_file, $schema, $sep, @rest ) = @_;
+    my %options =
+      @rest == 1 && ref( $rest[0] ) eq 'HASH' ? %{ $rest[0] } : @rest;
     my @row_results;
+    my $header;
 
-    for my $i ( 0 .. $#{ $csv_data->{records} } ) {
-        my $raw_record =
-          { %{ $csv_data->{records}->[$i] } };
-        my $record =
-          $self->_normalize_record_for_schema( $csv_data->{records}->[$i], $schema );
-        my $errs = $self->_validation_messages_for_record( $validator, $record );
-
-        push @row_results,
-          {
-            row    => $i + 1,
-            ok     => @$errs ? 0 : 1,
-            raw    => $raw_record,
-            errors => $errs,
-          };
-    }
+    $self->_stream_csv_rows(
+        $csv_file,
+        $schema,
+        $sep,
+        validation_mode => $options{validation_mode},
+        on_header => sub {
+            my ($stream_header) = @_;
+            $header = $stream_header;
+        },
+        on_row => sub {
+            my ($row_result) = @_;
+            push @row_results, $row_result;
+        },
+    );
 
     return {
-        header => $csv_data->{header},
+        header => $header,
         rows   => \@row_results,
     };
 }
 
 ##########################################################################
-# _normalize_record_for_schema($record, $schema)
+# _normalize_record_for_plan($record, $plan)
 #
 # Applies null normalization and numeric coercion according to the schema.
 ##########################################################################
-sub _normalize_record_for_schema {
-    my ( $self, $record, $schema ) = @_;
+sub _normalize_record_for_plan {
+    my ( $self, $record, $plan ) = @_;
     my %normalized = %{$record};
 
-    for my $col ( keys %{ $schema->{properties} } ) {
+    for my $col_plan ( @{ $plan->{columns} } ) {
+        my $col = $col_plan->{name};
         next unless exists $normalized{$col};
-        my $prop = $schema->{properties}->{$col};
         $normalized{$col} = $self->normalize_csv_value( $normalized{$col} );
-        if ( defined $prop->{_coerce} && $prop->{_coerce} ) {
-            $normalized{$col} =
-              $self->dotify_and_coerce_number( $normalized{$col} );
+        if ( $col_plan->{coerce} ) {
+            $normalized{$col} = $self->dotify_and_coerce_number( $normalized{$col} );
         }
     }
 
@@ -472,13 +587,181 @@ sub _normalize_record_for_schema {
 }
 
 ##########################################################################
-# _validation_messages_for_record($validator, $record)
+# _validation_messages_for_record($plan, $record)
 #
 # Returns stringified validation messages for a record.
 ##########################################################################
 sub _validation_messages_for_record {
-    my ( $self, $validator, $record ) = @_;
-    return [ map { "$_" } $validator->validate($record) ];
+    my ( $self, $plan, $record ) = @_;
+    return $plan->{validator_sub}->($record);
+}
+
+##########################################################################
+# _build_turbo_validator_sub($plan)
+#
+# Builds a lightweight schema-driven validator without JSON::Validator.
+##########################################################################
+sub _build_turbo_validator_sub {
+    my ( $self, $plan ) = @_;
+    return sub {
+        my ($record) = @_;
+        my @errors;
+
+        my @extra =
+          sort grep { !$plan->{allowed}{$_} } keys %{$record};
+        push @errors, '/: Properties not allowed: ' . join( ', ', @extra ) . '.'
+          if @extra;
+
+        for my $required_col ( @{ $plan->{required} } ) {
+            push @errors, "/$required_col: Missing property."
+              unless exists $record->{$required_col};
+        }
+
+        for my $col_plan ( @{ $plan->{columns} } ) {
+            my $name = $col_plan->{name};
+            next unless exists $record->{$name};
+            my $value = $record->{$name};
+
+            if ( !defined $value ) {
+                push @errors,
+                  "/$name: Expected $col_plan->{type} - got null."
+                  unless $col_plan->{nullable};
+                next;
+            }
+
+            my $type_error = $self->_turbo_type_error( $col_plan, $value );
+            if ($type_error) {
+                push @errors, "/$name: $type_error";
+                next;
+            }
+
+            if ( defined $col_plan->{max_length}
+                && length($value) > $col_plan->{max_length} )
+            {
+                push @errors,
+                  "/$name: String is too long: "
+                  . length($value) . "/$col_plan->{max_length}.";
+            }
+
+            if ( defined $col_plan->{format} ) {
+                if (   $col_plan->{format} eq 'date'
+                    && !$self->_is_valid_date($value) )
+                {
+                    push @errors, "/$name: Does not match date format.";
+                }
+                elsif (   $col_plan->{format} eq 'date-time'
+                       && !$self->_is_valid_date_time($value) )
+                {
+                    push @errors, "/$name: Does not match date-time format.";
+                }
+            }
+        }
+
+        @errors = sort @errors;
+        return \@errors;
+    };
+}
+
+##########################################################################
+# _turbo_type_error($col_plan, $value)
+#
+# Returns an error string if the value does not match the compiled type.
+##########################################################################
+sub _turbo_type_error {
+    my ( $self, $col_plan, $value ) = @_;
+    my $expected = $col_plan->{type};
+
+    return undef
+      if $expected eq 'integer' && $self->_is_integer_value($value);
+    return undef
+      if $expected eq 'number' && $self->_is_number_value($value);
+    return undef
+      if $expected eq 'string' && !ref($value);
+
+    my $expected_label =
+      $col_plan->{nullable} ? "$expected/null" : $expected;
+    return "Expected $expected_label - got " . $self->_turbo_value_type($value) . '.';
+}
+
+##########################################################################
+# _turbo_value_type($value)
+#
+# Returns a short human-readable type name for error messages.
+##########################################################################
+sub _turbo_value_type {
+    my ( $self, $value ) = @_;
+    return 'null' unless defined $value;
+    return 'array'  if ref($value) eq 'ARRAY';
+    return 'object' if ref($value) eq 'HASH';
+    return 'reference' if ref($value);
+    return 'string' unless looks_like_number($value);
+    return $self->_is_integer_value($value) ? 'integer' : 'number';
+}
+
+##########################################################################
+# _is_integer_value($value)
+##########################################################################
+sub _is_integer_value {
+    my ( $self, $value ) = @_;
+    return 0 unless defined $value && !ref($value) && looks_like_number($value);
+    return int($value) == $value ? 1 : 0;
+}
+
+##########################################################################
+# _is_number_value($value)
+##########################################################################
+sub _is_number_value {
+    my ( $self, $value ) = @_;
+    return defined $value && !ref($value) && looks_like_number($value) ? 1 : 0;
+}
+
+##########################################################################
+# _is_valid_date($value)
+##########################################################################
+sub _is_valid_date {
+    my ( $self, $value ) = @_;
+    return 0 unless defined $value && $value =~ /^(\d{4})-(\d{2})-(\d{2})$/;
+    return $self->_valid_ymd( $1, $2, $3 );
+}
+
+##########################################################################
+# _is_valid_date_time($value)
+##########################################################################
+sub _is_valid_date_time {
+    my ( $self, $value ) = @_;
+    return 0
+      unless defined $value
+      && $value =~ /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?$/;
+
+    my ( $year, $month, $day, $hour, $minute, $second ) =
+      ( $1, $2, $3, $4, $5, $6 );
+
+    return 0 unless $self->_valid_ymd( $year, $month, $day );
+    return 0 if $hour > 23 || $minute > 59 || $second > 59;
+    return 1;
+}
+
+##########################################################################
+# _valid_ymd($year, $month, $day)
+##########################################################################
+sub _valid_ymd {
+    my ( $self, $year, $month, $day ) = @_;
+    return 0 if $month < 1 || $month > 12;
+
+    my @days_in_month = ( 31, 28 + $self->_is_leap_year($year), 31, 30, 31, 30,
+        31, 31, 30, 31, 30, 31 );
+    return 0 if $day < 1 || $day > $days_in_month[ $month - 1 ];
+    return 1;
+}
+
+##########################################################################
+# _is_leap_year($year)
+##########################################################################
+sub _is_leap_year {
+    my ( $self, $year ) = @_;
+    return 1 if $year % 400 == 0;
+    return 0 if $year % 100 == 0;
+    return $year % 4 == 0 ? 1 : 0;
 }
 
 ##########################################################################

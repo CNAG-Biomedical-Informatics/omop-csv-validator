@@ -22,6 +22,8 @@ Path to the input CSV file to validate.
 
 The CLI accepts one CSV file per run. It does not take multiple OMOP tables in a single invocation.
 
+Validation is streamed row by row, so large files can be processed without loading the full input into memory first.
+
 ## Optional options
 
 :::warning `--sep` is a fallback option
@@ -48,6 +50,25 @@ Emit a machine-readable JSON result object instead of the default human-readable
 
 This is the recommended mode for R or other automation clients.
 
+The CLI still validates the file row by row in this mode and only accumulates failing rows for the final `row_errors` payload.
+
+### `--turbo`
+
+Use the compiled fast-path validator instead of the default `JSON::Validator` engine.
+
+This mode is optional and is mainly intended for large CSV files where validation throughput becomes a practical issue.
+
+For normal-sized files, stay on the default engine unless you have a specific reason to switch.
+
+The external behavior stays the same:
+
+- same exit codes
+- same JSON output shape
+- same row numbering
+- same report formats
+
+For implementation details and benchmark numbers, see [Implementation](../implementation/overview.md).
+
 ### `--report-tsv`
 
 Write a tab-separated validation report that spreadsheet users can open directly in Excel or LibreOffice.
@@ -62,6 +83,8 @@ The report keeps the original input columns and appends these validation columns
 Use this when you want to sort, filter, or review failing rows in a spreadsheet.
 
 The report is TSV, not native `.xlsx`, so it does not carry Excel cell colors by itself.
+
+The report is written incrementally while the input is being validated, which makes this mode suitable for large files as well.
 
 When this mode is enabled, the CLI keeps stdout compact on validation failure and does not print the full row-by-row error listing.
 
@@ -83,6 +106,8 @@ This mode also adds spreadsheet-oriented presentation:
 Use this when your reviewers work primarily in Excel and want a ready-to-open workbook instead of plain text output.
 
 When this mode is enabled, the CLI keeps stdout compact on validation failure and does not print the full row-by-row error listing.
+
+The workbook rows are written as validation proceeds, so this mode does not require the full CSV to be held in memory first.
 
 ### `--help`, `-h`
 

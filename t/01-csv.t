@@ -36,6 +36,11 @@ sub validate_csv_fixture {
         $csv_path->stringify,
         $schema,
         $args{sep},
+        {
+            ( defined $args{validation_mode}
+                ? ( validation_mode => $args{validation_mode} )
+                : () ),
+        },
     );
 }
 
@@ -50,6 +55,14 @@ my $errors_person_valid = validate_csv_fixture(
 );
 is( scalar(@$errors_person_valid), 0, 'Valid person CSV has no errors' );
 
+my $errors_person_valid_turbo = validate_csv_fixture(
+    ddl_text         => $ddl_text,
+    csv_name         => 'PERSON.csv',
+    csv_text         => $sections{CSV_person_valid},
+    validation_mode  => 'turbo',
+);
+is( scalar(@$errors_person_valid_turbo), 0, 'Turbo mode accepts a valid person CSV' );
+
 my $errors_person_invalid = validate_csv_fixture(
     ddl_text => $ddl_text,
     csv_name => 'PERSON.csv',
@@ -57,6 +70,20 @@ my $errors_person_invalid = validate_csv_fixture(
 );
 ok( scalar(@$errors_person_invalid) > 0, 'Invalid person CSV returns errors' );
 is( $errors_person_invalid->[0]{row}, 1, 'Module reports first data row as row 1' );
+
+my $errors_person_invalid_turbo = validate_csv_fixture(
+    ddl_text         => $ddl_text,
+    csv_name         => 'PERSON.csv',
+    csv_text         => $sections{CSV_person_invalid},
+    validation_mode  => 'turbo',
+);
+ok( scalar(@$errors_person_invalid_turbo) > 0, 'Turbo mode returns errors for invalid person CSV' );
+is( $errors_person_invalid_turbo->[0]{row}, 1, 'Turbo mode keeps the same row numbering' );
+like(
+    $errors_person_invalid_turbo->[0]{errors}[0],
+    qr/Expected integer/,
+    'Turbo mode reports readable type errors'
+);
 
 my $errors_obs_valid = validate_csv_fixture(
     ddl_text => $ddl_text,
@@ -104,6 +131,18 @@ is(
     'Nullable date, timestamp, and varchar fields accept \\N markers'
 );
 
+my $errors_nullable_nulls_turbo = validate_csv_fixture(
+    ddl_text         => $sections{DDL_nullable_fields},
+    csv_name         => 'NULL_TEST.csv',
+    csv_text         => $sections{CSV_nullable_fields_with_null_markers},
+    validation_mode  => 'turbo',
+);
+is(
+    scalar(@$errors_nullable_nulls_turbo),
+    0,
+    'Turbo mode accepts \\N markers for nullable date, timestamp, and varchar fields'
+);
+
 my $errors_person_tab_autodetect = validate_csv_fixture(
     ddl_text => $ddl_text,
     csv_name => 'PERSON.csv',
@@ -114,6 +153,20 @@ is(
     0,
     'Module infers tab separator when --sep is omitted'
 );
+
+my $large_csv = "person_id,gender_concept_id,year_of_birth,person_source_value\n"
+  . join(
+    "\n",
+    map { join ',', $_, 8532, 1963, "source$_" } 1 .. 250
+  )
+  . "\nA,8532,1963,source251\n";
+my $errors_large_stream = validate_csv_fixture(
+    ddl_text => $sections{DDL_large_stream_person},
+    csv_name => 'PERSON.csv',
+    csv_text => $large_csv,
+);
+is( scalar(@$errors_large_stream), 1, 'Large synthetic CSV still reports only the failing row' );
+is( $errors_large_stream->[0]{row}, 251, 'Large synthetic CSV preserves row numbering deep into the file' );
 
 my $validator = OMOP::CSV::Validator->new();
 my $schema_less_schemas =
@@ -206,6 +259,71 @@ like(
     'Column-order extraction fails cleanly for unknown tables'
 );
 
+my $turbo_schema = {
+    type                 => 'object',
+    properties           => {
+        person_id => { type => 'integer' },
+        name      => { type => [ 'string', 'null' ], maxLength => 3 },
+        born_at   => { type => [ 'string', 'null' ], format => 'date-time' },
+    },
+    required             => ['person_id'],
+    additionalProperties => 0,
+};
+
+my $turbo_extra_path = write_fixture(
+    $dir,
+    'TURBO_EXTRA.csv',
+    "person_id,name,born_at,extra\n1,abc,1980-01-01T00:00:00Z,unexpected\n",
+);
+my $turbo_extra_errors = $validator->validate_csv_file(
+    $turbo_extra_path->stringify,
+    $turbo_schema,
+    ',',
+    { validation_mode => 'turbo' },
+);
+is( scalar(@$turbo_extra_errors), 1, 'Turbo mode flags rows with unexpected extra columns' );
+like(
+    $turbo_extra_errors->[0]{errors}[0],
+    qr/Properties not allowed: extra/,
+    'Turbo mode reports additionalProperties failures'
+);
+
+my $turbo_missing_path = write_fixture(
+    $dir,
+    'TURBO_MISSING.csv',
+    "name,born_at\nabc,1980-01-01T00:00:00Z\n",
+);
+my $turbo_missing_errors = $validator->validate_csv_file(
+    $turbo_missing_path->stringify,
+    $turbo_schema,
+    ',',
+    { validation_mode => 'turbo' },
+);
+is( scalar(@$turbo_missing_errors), 1, 'Turbo mode flags rows missing required columns' );
+like(
+    join( ' ', @{ $turbo_missing_errors->[0]{errors} } ),
+    qr{/person_id: Missing property\.},
+    'Turbo mode reports missing required properties'
+);
+
+my $turbo_bad_datetime_path = write_fixture(
+    $dir,
+    'TURBO_BAD_DT.csv',
+    "person_id,name,born_at\n1,abc,1980-01-01\n",
+);
+my $turbo_bad_datetime_errors = $validator->validate_csv_file(
+    $turbo_bad_datetime_path->stringify,
+    $turbo_schema,
+    ',',
+    { validation_mode => 'turbo' },
+);
+is( scalar(@$turbo_bad_datetime_errors), 1, 'Turbo mode flags invalid date-time values' );
+like(
+    join( ' ', @{ $turbo_bad_datetime_errors->[0]{errors} } ),
+    qr/Does not match date-time format/,
+    'Turbo mode reports invalid date-time format clearly'
+);
+
 done_testing();
 
 __DATA__
@@ -263,6 +381,15 @@ CREATE TABLE public.null_test (
     nullable_text varchar(20) NULL
 );
 __END_DDL_nullable_fields__
+
+__DDL_large_stream_person__
+CREATE TABLE public.person (
+    person_id integer NOT NULL,
+    gender_concept_id integer NOT NULL,
+    year_of_birth integer NOT NULL,
+    person_source_value varchar(50) NULL
+);
+__END_DDL_large_stream_person__
 
 __DDL_misc_types_and_comments__
 CREATE TABLE public.misc_table (

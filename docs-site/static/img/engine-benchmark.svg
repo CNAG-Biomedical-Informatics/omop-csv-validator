@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="460" viewBox="0 0 760 460" role="img" aria-labelledby="title desc">
+  <title id="title">Synthetic benchmark comparing default and turbo engines</title>
+  <desc id="desc">Line chart showing validation time for 50K, 100K, 250K, and 500K synthetic PERSON rows for the default and turbo engines.</desc>
+  <rect width="760" height="460" fill="#fffdf8"/>
+  <text x="50" y="36" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#182433">Default vs turbo benchmark</text>
+  <text x="50" y="58" font-family="Arial, sans-serif" font-size="13" fill="#4b5b6b">Local run, Linux 5.4, 12 CPUs, single process, OMOP 5.4 person schema, --json success path</text>
+
+  <g stroke="#d8e0e7" stroke-width="1">
+    <line x1="90" y1="360" x2="700" y2="360"/>
+    <line x1="90" y1="282.5" x2="700" y2="282.5"/>
+    <line x1="90" y1="205" x2="700" y2="205"/>
+    <line x1="90" y1="127.5" x2="700" y2="127.5"/>
+    <line x1="90" y1="50" x2="700" y2="50"/>
+  </g>
+
+  <g stroke="#243647" stroke-width="2">
+    <line x1="90" y1="360" x2="700" y2="360"/>
+    <line x1="90" y1="50" x2="90" y2="360"/>
+  </g>
+
+  <g font-family="Arial, sans-serif" font-size="12" fill="#425466">
+    <text x="62" y="364">0s</text>
+    <text x="54" y="286.5">35s</text>
+    <text x="54" y="209">70s</text>
+    <text x="47" y="131.5">105s</text>
+    <text x="47" y="54">140s</text>
+
+    <text x="118" y="385">50K</text>
+    <text x="258" y="385">100K</text>
+    <text x="428" y="385">250K</text>
+    <text x="638" y="385">500K</text>
+  </g>
+
+  <polyline
+    fill="none"
+    stroke="#b45309"
+    stroke-width="4"
+    points="130,330.4 270,300.6 440,211.5 650,62.6"
+  />
+
+  <polyline
+    fill="none"
+    stroke="#0d9488"
+    stroke-width="4"
+    points="130,354.5 270,349.5 440,334.3 650,308.4"
+  />
+
+  <g fill="#b45309" stroke="#ffffff" stroke-width="3">
+    <circle cx="130" cy="330.4" r="7"/>
+    <circle cx="270" cy="300.6" r="7"/>
+    <circle cx="440" cy="211.5" r="7"/>
+    <circle cx="650" cy="62.6" r="7"/>
+  </g>
+
+  <g fill="#0f766e" stroke="#ffffff" stroke-width="3">
+    <circle cx="130" cy="354.5" r="7"/>
+    <circle cx="270" cy="349.5" r="7"/>
+    <circle cx="440" cy="334.3" r="7"/>
+    <circle cx="650" cy="308.4" r="7"/>
+  </g>
+
+  <g font-family="Arial, sans-serif" font-size="12" font-weight="700">
+    <text x="104" y="316" fill="#7c2d12">13.36s</text>
+    <text x="244" y="286" fill="#7c2d12">26.82s</text>
+    <text x="414" y="197" fill="#7c2d12">67.07s</text>
+    <text x="618" y="48" fill="#7c2d12">134.32s</text>
+
+    <text x="104" y="373" fill="#115e59">2.47s</text>
+    <text x="244" y="367" fill="#115e59">4.75s</text>
+    <text x="414" y="352" fill="#115e59">11.61s</text>
+    <text x="618" y="326" fill="#115e59">23.29s</text>
+  </g>
+
+  <g font-family="Arial, sans-serif" font-size="12" fill="#182433">
+    <rect x="510" y="90" width="14" height="14" fill="#b45309"/>
+    <text x="532" y="101">Default engine</text>
+    <rect x="510" y="115" width="14" height="14" fill="#0d9488"/>
+    <text x="532" y="126">Turbo engine</text>
+  </g>
+
+  <g font-family="Arial, sans-serif" font-size="12" fill="#425466">
+    <text x="336" y="420">Synthetic PERSON rows</text>
+    <text transform="translate(24 240) rotate(-90)">Validation time (seconds)</text>
+  </g>
+</svg>

@@ -9,6 +9,7 @@ use File::Temp qw(tempdir);
 use JSON::XS;
 use Path::Tiny;
 use Text::CSV_XS;
+use OMOP::CSV::Validator;
 
 use TestHelper qw(write_fixture run_cli_capture run_cli_json slurp_zip_member);
 
@@ -73,6 +74,16 @@ is( $json_valid_payload->{ok}, 1, 'JSON mode reports success' );
 is( $json_valid_payload->{error_count}, 0, 'JSON mode reports zero row errors' );
 is( $json_valid_payload->{schema_name}, 'PERSON', 'JSON mode includes inferred schema name' );
 
+my ( $json_valid_turbo_exit, $json_valid_turbo_payload ) = run_cli_json(
+    '--ddl',   $ddl_path->stringify,
+    '--input', $valid_path->stringify,
+    '--json',
+    '--turbo',
+);
+is( $json_valid_turbo_exit, 0, 'Turbo JSON mode exits 0 on valid CSV' );
+is( $json_valid_turbo_payload->{ok}, 1, 'Turbo JSON mode reports success' );
+is( $json_valid_turbo_payload->{error_count}, 0, 'Turbo JSON mode reports zero row errors' );
+
 my ( $human_success_exit, $human_success_stdout, $human_success_stderr ) = run_cli_capture(
     '--ddl',      $ddl_path->stringify,
     '--input',    $valid_path->stringify,
@@ -87,7 +98,11 @@ like( $help_stdout, qr/Usage:/, '--help prints usage text' );
 
 my ( $version_exit, $version_stdout, $version_stderr ) = run_cli_capture('--version');
 is( $version_exit, 0, '--version exits 0' );
-like( $version_stdout, qr/Version 0\.03/, '--version prints the CLI version' );
+like(
+    $version_stdout,
+    qr/Version \Q$OMOP::CSV::Validator::VERSION\E/,
+    '--version prints the CLI version'
+);
 
 my ( $missing_args_exit, $missing_args_stdout, $missing_args_stderr ) = run_cli_capture();
 is( $missing_args_exit, 1, 'Missing required arguments exits 1' );
@@ -105,6 +120,21 @@ is( $json_invalid_payload->{row_errors}[0]{row}, 1, 'JSON row numbering matches 
 ok(
     scalar( @{ $json_invalid_payload->{row_errors}[0]{messages} } ) > 0,
     'JSON mode includes row-level error messages'
+);
+
+my ( $json_invalid_turbo_exit, $json_invalid_turbo_payload ) = run_cli_json(
+    '--ddl',   $invalid_ddl_path->stringify,
+    '--input', $invalid_path->stringify,
+    '--json',
+    '--turbo',
+);
+is( $json_invalid_turbo_exit, 1, 'Turbo JSON mode exits 1 on validation failure' );
+is( $json_invalid_turbo_payload->{ok}, 0, 'Turbo JSON mode reports failure' );
+is( $json_invalid_turbo_payload->{error_count}, 1, 'Turbo JSON mode reports one failing row' );
+like(
+    $json_invalid_turbo_payload->{row_errors}[0]{messages}[0],
+    qr/Expected integer/,
+    'Turbo JSON mode keeps readable type errors'
 );
 
 my ( $json_detected_sep_exit, $json_detected_sep_payload ) = run_cli_json(

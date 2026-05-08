@@ -20,6 +20,10 @@ The command:
 - infers the table name from the CSV filename
 - validates each row against that schema
 
+Validation is performed row by row. Large OMOP exports do not need to be fully loaded into memory before the tool starts checking records.
+
+For implementation details, engine tradeoffs, and local benchmark data, see the [Implementation](../implementation/overview.md) section.
+
 :::note Column order is not required for validation
 The validator matches columns by header name.
 
@@ -165,6 +169,8 @@ This returns one JSON object with:
 - the number of failing rows
 - row-level error messages when validation fails
 
+The JSON mode still processes the input row by row. In practice, that means memory usage grows mainly with the number of failing rows returned in `row_errors`, not with the full size of the input file.
+
 ## Spreadsheet-friendly review output
 
 If you want a review artifact for Excel or LibreOffice users, the CLI can generate:
@@ -186,6 +192,8 @@ If validation fails, the command exits with status `1` and prints:
 - one or more validator messages for that row
 
 In `--json` mode, fatal setup errors such as “no schema found” return exit status `2` with a `fatal_error` field.
+
+For large files, the validator starts checking rows immediately rather than waiting to read the whole file first.
 
 Example of the default human-readable error output:
 
