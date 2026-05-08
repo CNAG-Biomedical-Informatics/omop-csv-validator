@@ -1,0 +1,90 @@
+:root {
+  --ifm-color-primary: #0f766e;
+  --ifm-color-primary-dark: #0b635d;
+  --ifm-color-primary-darker: #095852;
+  --ifm-color-primary-darkest: #074441;
+  --ifm-color-primary-light: #12877f;
+  --ifm-color-primary-lighter: #15998f;
+  --ifm-color-primary-lightest: #1bb4a8;
+  --ifm-background-color: #f7faf9;
+  --ifm-navbar-background-color: rgba(255, 255, 255, 0.92);
+  --ifm-footer-background-color: #0f172a;
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.08);
+  --omop-hero-background: linear-gradient(135deg, #ecfeff 0%, #f8fafc 55%, #ecfdf5 100%);
+  --omop-hero-color: #0f172a;
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #2dd4bf;
+  --ifm-color-primary-dark: #14b8a6;
+  --ifm-color-primary-darker: #0d9488;
+  --ifm-color-primary-darkest: #0f766e;
+  --ifm-color-primary-light: #5eead4;
+  --ifm-color-primary-lighter: #99f6e4;
+  --ifm-color-primary-lightest: #ccfbf1;
+  --ifm-background-color: #08111b;
+  --ifm-background-surface-color: #0f172a;
+  --ifm-navbar-background-color: rgba(8, 17, 27, 0.9);
+  --ifm-font-color-base: #e5edf5;
+  --ifm-heading-color: #f8fafc;
+  --ifm-card-background-color: #0f172a;
+  --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.08);
+  --omop-hero-background: linear-gradient(135deg, #102a43 0%, #0f172a 55%, #092b23 100%);
+  --omop-hero-color: #f8fafc;
+}
+
+.navbar {
+  backdrop-filter: blur(10px);
+}
+
+.hero--primary {
+  background: var(--omop-hero-background);
+  color: var(--omop-hero-color);
+}
+
+.omop-docs-hero-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.omop-docs-hero-logo {
+  width: 96px;
+  height: 96px;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
+.omop-docs-hero-title {
+  margin-bottom: 0;
+}
+
+.omop-feature-card {
+  height: 100%;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.06);
+}
+
+[data-theme='dark'] .omop-feature-card {
+  border-color: rgba(226, 232, 240, 0.12);
+  background: rgba(15, 23, 42, 0.78);
+  box-shadow: none;
+}
+
+@media (max-width: 640px) {
+  .omop-docs-hero-brand {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .omop-docs-hero-logo {
+    width: 80px;
+    height: 80px;
+  }
+}
