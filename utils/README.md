@@ -2,7 +2,7 @@
 
 ## Overview
 
-**reorder-csv.pl** is a Perl utility that reorders the columns of an input CSV file to match the column order specified in a DDL file. The DDL can contain either a `CREATE TABLE` statement or index definitions, making it easier to prepare CSV files for database imports.
+**reorder-csv.pl** is a Perl utility that reorders the columns of an input CSV file to match the column order specified in a DDL file. It is mainly useful as a load-preparation step for workflows where column position matters, such as SQLite `.import` or positional PostgreSQL loads.
 
 ## Features
 
@@ -25,7 +25,7 @@
 Run the script with the following options:
 
 ```bash
-perl reorder-csv.pl -ddl-type postgresql --ddl DDL_FILE --input INPUT_CSV --output OUTPUT_CSV [--sep SEPARATOR]
+perl reorder-csv.pl --ddl DDL_FILE --input INPUT_CSV --output OUTPUT_CSV [--ddl-type postgresql|sqlite] [--sep SEPARATOR]
 ```
 
 ### Arguments
@@ -35,13 +35,14 @@ perl reorder-csv.pl -ddl-type postgresql --ddl DDL_FILE --input INPUT_CSV --outp
 - `--output`: Output CSV file with columns reordered to match the DDL.
 - `--sep`: *(Optional)* Field separator character (defaults to tab `\t`).
 - `--table`: *(Optional)* Override the table name to look up in the DDL. If not provided, the script derives it from the CSV filename.
-- `--ddl-type`: Type of the DDL format. Supported values: `sqlite`, `postgresql` (required).
+- `--ddl-type`: Type of the DDL format. Supported values: `sqlite`, `postgresql` (optional, defaults to `postgresql`).
 
 ### Example
 
 ```bash
-perl reorder-csv.pl --ddl schema_postgres.sql --ddl-type postgresql --input PERSON.csv --output reordered_data.csv --sep $'\t'
-perl reorder-csv.pl --ddl schema_postgres.sql --ddl-type postgresql --input my_table.csv --output reordered_data.csv --sep $'\t' --table person
+perl reorder-csv.pl --ddl schema_postgres.sql --input PERSON.csv --output reordered_data.csv
+perl reorder-csv.pl --ddl schema_postgres.sql --input my_table.csv --output reordered_data.csv --table person
+perl reorder-csv.pl --ddl schema_sqlite.sql --ddl-type sqlite --input PERSON.csv --output reordered_data.csv
 ```
 
 ## Author 

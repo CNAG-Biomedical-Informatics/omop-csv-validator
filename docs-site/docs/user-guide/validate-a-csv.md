@@ -20,6 +20,12 @@ The command:
 - infers the table name from the CSV filename
 - validates each row against that schema
 
+:::note Column order is not required for validation
+The validator matches columns by header name.
+
+If you later need a file in canonical DDL column order for import workflows such as SQLite `.import` or positional database loads, use [`reorder-csv.pl`](../reference/utilities.md).
+:::
+
 ## One table per run
 
 The validator accepts one input CSV file per invocation.
