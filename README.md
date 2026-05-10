@@ -9,7 +9,7 @@
 [![Documentation Status](https://github.com/CNAG-Biomedical-Informatics/omop-csv-validator/actions/workflows/documentation.yml/badge.svg)](https://github.com/CNAG-Biomedical-Informatics/omop-csv-validator/actions/workflows/documentation.yml)
 [![Coverage Status](https://coveralls.io/repos/github/CNAG-Biomedical-Informatics/omop-csv-validator/badge.svg?branch=main)](https://coveralls.io/github/CNAG-Biomedical-Informatics/omop-csv-validator?branch=main)
 [![Kwalitee Score](https://cpants.cpanauthors.org/dist/OMOP-CSV-Validator.svg)](https://cpants.cpanauthors.org/dist/OMOP-CSV-Validator)
-![version](https://img.shields.io/badge/version-0.04-blue)
+![version](https://img.shields.io/badge/version-0.05-blue)
 [![License](https://img.shields.io/badge/License-Artistic%202.0-0298c3.svg)](https://opensource.org/licenses/Artistic-2.0)
 
 ---

@@ -1,5 +1,13 @@
 Revision history for Perl distribution OMOP-CSV-Validator
 
+0.05 2026-05-10T00:00:00Z (Manuel Rueda <mrueda@cpan.org>)
+
+ - Promoted the CPAN Testers fix from 0.04_1 to a stable release
+
+0.04_1 2026-05-08T00:00:00Z (Manuel Rueda <mrueda@cpan.org>)
+
+ - Fixed CPAN Testers failures by running CLI test helpers with the same Perl interpreter as the test harness
+
 0.04 2025-05-08T00:00:00Z (Manuel Rueda <mrueda@cpan.org>)
 
  - Added opt-in <--json>, <--report-tsv>, and <--report-xlsx> CLI outputs for automation and spreadsheet users
