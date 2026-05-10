@@ -80,7 +80,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: 'Copyright © 2025-2026 OMOP CSV Validator.',
+      copyright: 'Copyright © 2022-2026 Manuel Rueda, CNAG.',
     },
     prism: {
       theme: prismThemes.github,
