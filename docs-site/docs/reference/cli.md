@@ -20,7 +20,11 @@ Path to the PostgreSQL DDL file containing `CREATE TABLE` definitions.
 
 Path to the input CSV file to validate.
 
+:::important One CSV file per run
 The CLI accepts one CSV file per run. It does not take multiple OMOP tables in a single invocation.
+
+For folder-level validation, call the CLI once per CSV file.
+:::
 
 Validation is streamed row by row, so large files can be processed without loading the full input into memory first.
 
@@ -54,11 +58,15 @@ The CLI still validates the file row by row in this mode and only accumulates fa
 
 ### `--turbo`
 
-Use the compiled fast-path validator instead of the default `JSON::Validator` engine.
+Use the specialized fast-path validator instead of the default `JSON::Validator` engine.
 
-This mode is optional and is mainly intended for large CSV files where validation throughput becomes a practical issue.
+The default engine validates each row through `JSON::Validator`, a general JSON Schema validation library.
+
+`--turbo` builds a lightweight per-table plan from the same DDL-derived schema and checks each row directly. It is optional and is mainly intended for large CSV files where validation throughput becomes a practical issue.
 
 For normal-sized files, stay on the default engine unless you have a specific reason to switch.
+
+The default engine is not legacy. It is the generic validation baseline. `--turbo` is the specialized high-throughput path.
 
 The external behavior stays the same:
 
@@ -67,7 +75,7 @@ The external behavior stays the same:
 - same row numbering
 - same report formats
 
-For implementation details and benchmark numbers, see [Implementation](../implementation/overview.md).
+For implementation details and benchmark numbers, see [Validation Engines](../how-it-works/validation-engines.md).
 
 ### `--report-tsv`
 

@@ -4,23 +4,29 @@ sidebar_position: 1
 
 # OMOP CSV Validator
 
-OMOP CSV Validator is a small Perl project for validating OMOP CDM CSV extracts against rules derived from PostgreSQL DDL.
+OMOP CSV Validator checks OMOP CDM CSV files before they are loaded into a database.
 
-It validates files row by row, so it can be used on large OMOP exports without first loading the full CSV into memory.
+It is designed for **pre-ingestion checks**: run it while developing or testing ETLs, catch broken exports early, and fix the files before they reach PostgreSQL.
+
+Under the hood, it derives validation rules from OMOP PostgreSQL DDL and validates files row by row, so it can be used on large OMOP exports without first loading the full CSV into memory.
+
+![OMOP CSV Validator pre-ingestion workflow](/img/pre-ingestion-validation.svg)
 
 ## What it is for
 
-- checking whether a CSV file matches the expected OMOP table structure
-- validating column types without hand-writing table-specific validators
+- checking whether a CSV matches DDL-derived columns and types **before database ingestion**
+- finding ETL mistakes while the output is still easy to inspect and replace
+- generating human, JSON, TSV, or XLSX outputs for pipelines and review workflows
 - using the same validation logic from a CLI or from Perl code
 
 ## Core workflow
 
-The validator works in three steps:
+The validator works in four steps:
 
 1. read PostgreSQL DDL containing `CREATE TABLE` statements
-2. derive a schema for each table
+2. derive a schema for each OMOP table
 3. stream through the CSV and validate each row against the selected table schema
+4. report issues before the file reaches PostgreSQL
 
 ## Project surfaces
 
@@ -50,6 +56,6 @@ These docs assume:
 
 - PostgreSQL-style OMOP DDL files
 - CSV files whose table name can be inferred from the filename, unless overridden
-- local execution by analysts or developers working with OMOP extracts
+- local execution by analysts, developers, or ETL pipelines working with OMOP extracts
 
 Known limitations are described in [Troubleshooting](./troubleshooting/common-issues.md).

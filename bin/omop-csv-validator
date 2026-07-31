@@ -488,11 +488,15 @@ __END__
 
 =head1 NAME
 
-omop_csv_validator - Validate OMOP CDM CSV files against DDL-derived schemas
+omop-csv-validator - Validate OMOP CDM CSV files before database ingestion
 
 =head1 SYNOPSIS
 
-  omop_csv_validator --ddl DDL.sql --input DATA.csv [--sep $'\t'] [--table person] [--save-schemas schemas.json] [--report-tsv validation.tsv] [--report-xlsx validation.xlsx]
+  omop-csv-validator --ddl DDL.sql --input TABLE.csv [options]
+
+=head1 DESCRIPTION
+
+C<omop-csv-validator> validates one OMOP CDM CSV table export before database ingestion. It derives validation rules from PostgreSQL OMOP DDL and reports column, null, and scalar-value problems while the data is still a file.
 
 =head1 OPTIONS
 
@@ -553,10 +557,10 @@ Show the script's version (which corresponds to C<OMOP::CSV::Validator::VERSION>
 
 =head1 EXAMPLE
 
-  bin/omop_csv_validator --ddl ddl/postgres.sql --input data/person.csv --sep $'\t'
-  bin/omop_csv_validator --ddl ddl/postgres.sql --input data/ANY_CSV.csv --table person
-  bin/omop_csv_validator --ddl ddl/postgres.sql --input data/ANY_CSV.csv --save-schemas schemas.json
-  bin/omop_csv_validator --ddl ddl/postgres.sql --input data/person.csv --report-tsv validation.tsv
-  bin/omop_csv_validator --ddl ddl/postgres.sql --input data/person.csv --report-xlsx validation.xlsx
+  omop-csv-validator --ddl ddl/postgres.sql --input data/PERSON.csv
+  omop-csv-validator --ddl ddl/postgres.sql --input data/export.csv --table person
+  omop-csv-validator --ddl ddl/postgres.sql --input data/PERSON.csv --json
+  omop-csv-validator --ddl ddl/postgres.sql --input data/PERSON.csv --report-tsv validation.tsv
+  omop-csv-validator --ddl ddl/postgres.sql --input data/PERSON.csv --report-xlsx validation.xlsx
 
 =cut

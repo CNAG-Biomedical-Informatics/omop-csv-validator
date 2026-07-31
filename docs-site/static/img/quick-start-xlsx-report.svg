@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-labelledby="title desc">
+  <title id="title">Validation worksheet for the invalid PERSON example</title>
+  <desc id="desc">Spreadsheet preview of the XLSX report for example/invalid/PERSON.csv. The first row is green and marked OK. The second row is red and marked ERROR because person_id contains A17 instead of an integer.</desc>
+  <defs>
+    <filter id="shadow" x="-8%" y="-16%" width="116%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .bg { fill: #f8fafc; }
+      .window { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#shadow); }
+      .titlebar { fill: #166534; }
+      .toolbar { fill: #f1f5f9; }
+      .column-bar { fill: #e2e8f0; }
+      .corner { fill: #cbd5e1; }
+      .header { fill: #1f4e78; }
+      .valid-row { fill: #e2f0d9; }
+      .error-row { fill: #fce4d6; }
+      .status-ok { fill: #1b5e20; }
+      .status-error { fill: #8b0000; }
+      .tabbar { fill: #f1f5f9; }
+      .tab { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1; }
+      .tab-active { fill: #ffffff; stroke: #166534; stroke-width: 2; }
+      .grid { stroke: #b8c4d1; stroke-width: 1; fill: none; }
+      .title-text { font: 700 15px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #ffffff; }
+      .ui { font: 600 12px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #475569; }
+      .column { font: 700 12px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #475569; text-anchor: middle; }
+      .head { font: 700 12px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #ffffff; }
+      .cell { font: 600 13px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #334155; }
+      .status-text { font: 800 13px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #ffffff; text-anchor: middle; }
+      .row-number { font: 600 12px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #64748b; text-anchor: middle; }
+      .tab-text { font: 700 12px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #334155; text-anchor: middle; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1200" height="520"/>
+  <rect x="52" y="32" width="1096" height="456" rx="8" class="window"/>
+
+  <rect x="52" y="32" width="1096" height="42" class="titlebar"/>
+  <circle cx="76" cy="53" r="6" fill="#fca5a5"/>
+  <circle cx="96" cy="53" r="6" fill="#fde68a"/>
+  <circle cx="116" cy="53" r="6" fill="#86efac"/>
+  <text x="142" y="58" class="title-text">validation-report.xlsx - Validation</text>
+
+  <rect x="52" y="74" width="1096" height="48" class="toolbar"/>
+  <rect x="74" y="87" width="58" height="24" fill="#ffffff" stroke="#cbd5e1" rx="3"/>
+  <text x="91" y="104" class="ui">T3</text>
+  <rect x="144" y="87" width="980" height="24" fill="#ffffff" stroke="#cbd5e1" rx="3"/>
+  <text x="160" y="104" class="ui">ERROR</text>
+
+  <rect x="52" y="122" width="54" height="34" class="corner"/>
+  <rect x="106" y="122" width="145" height="34" class="column-bar"/>
+  <rect x="251" y="122" width="185" height="34" class="column-bar"/>
+  <rect x="436" y="122" width="150" height="34" class="column-bar"/>
+  <rect x="586" y="122" width="205" height="34" class="column-bar"/>
+  <rect x="791" y="122" width="170" height="34" class="column-bar"/>
+  <rect x="961" y="122" width="187" height="34" class="column-bar"/>
+  <text x="178" y="144" class="column">A</text>
+  <text x="344" y="144" class="column">B</text>
+  <text x="511" y="144" class="column">C</text>
+  <text x="689" y="144" class="column">L</text>
+  <text x="876" y="144" class="column">S</text>
+  <text x="1055" y="144" class="column">T</text>
+
+  <rect x="52" y="156" width="54" height="48" class="column-bar"/>
+  <rect x="106" y="156" width="145" height="48" class="header"/>
+  <rect x="251" y="156" width="185" height="48" class="header"/>
+  <rect x="436" y="156" width="150" height="48" class="header"/>
+  <rect x="586" y="156" width="205" height="48" class="header"/>
+  <rect x="791" y="156" width="170" height="48" class="header"/>
+  <rect x="961" y="156" width="187" height="48" class="header"/>
+  <text x="79" y="186" class="row-number">1</text>
+  <text x="120" y="186" class="head">person_id</text>
+  <text x="265" y="186" class="head">gender_concept_id</text>
+  <text x="450" y="186" class="head">year_of_birth</text>
+  <text x="600" y="186" class="head">person_source_value</text>
+  <text x="805" y="186" class="head">_validation_row</text>
+  <text x="975" y="186" class="head">_validation_status</text>
+
+  <rect x="52" y="204" width="54" height="58" class="column-bar"/>
+  <rect x="106" y="204" width="855" height="58" class="valid-row"/>
+  <rect x="961" y="204" width="187" height="58" class="status-ok"/>
+  <text x="79" y="239" class="row-number">2</text>
+  <text x="120" y="239" class="cell">1</text>
+  <text x="265" y="239" class="cell">8532</text>
+  <text x="450" y="239" class="cell">1963</text>
+  <text x="600" y="239" class="cell">source1</text>
+  <text x="805" y="239" class="cell">1</text>
+  <text x="1055" y="239" class="status-text">OK</text>
+
+  <rect x="52" y="262" width="54" height="58" class="column-bar"/>
+  <rect x="106" y="262" width="855" height="58" class="error-row"/>
+  <rect x="961" y="262" width="187" height="58" class="status-error"/>
+  <text x="79" y="297" class="row-number">3</text>
+  <text x="120" y="297" class="cell">A17</text>
+  <text x="265" y="297" class="cell">8532</text>
+  <text x="450" y="297" class="cell">1963</text>
+  <text x="600" y="297" class="cell">source2</text>
+  <text x="805" y="297" class="cell">2</text>
+  <text x="1055" y="297" class="status-text">ERROR</text>
+
+  <path d="M52 156H1148M52 204H1148M52 262H1148M52 320H1148M106 122V430M251 122V320M436 122V320M586 122V320M791 122V320M961 122V320" class="grid"/>
+
+  <rect x="52" y="320" width="1096" height="110" fill="#ffffff"/>
+  <path d="M52 356H1148M52 393H1148M52 430H1148" class="grid"/>
+  <rect x="52" y="320" width="54" height="110" class="column-bar"/>
+  <text x="79" y="344" class="row-number">4</text>
+  <text x="79" y="381" class="row-number">5</text>
+  <text x="79" y="418" class="row-number">6</text>
+
+  <rect x="52" y="430" width="1096" height="58" class="tabbar"/>
+  <rect x="82" y="444" width="116" height="32" class="tab" rx="3"/>
+  <text x="140" y="465" class="tab-text">Summary</text>
+  <rect x="208" y="444" width="126" height="32" class="tab-active" rx="3"/>
+  <text x="271" y="465" class="tab-text">Validation</text>
+</svg>

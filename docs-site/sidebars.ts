@@ -2,41 +2,45 @@ import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
 
 const sidebars: SidebarsConfig = {
   docsSidebar: [
-    'overview',
+    {type: 'doc', id: 'overview', label: 'Overview'},
     {
       type: 'category',
-      label: 'User Guide',
+      label: 'Getting Started',
+      collapsed: false,
       items: [
         'user-guide/installation',
+        'user-guide/quick-start',
         'user-guide/validate-a-csv',
+        'user-guide/validate-a-folder',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Optional Reports & Integrations',
+      items: [
         'user-guide/spreadsheet-reports',
         'user-guide/use-from-r',
         'user-guide/use-from-python',
-        'user-guide/worked-example',
       ],
     },
     {
       type: 'category',
       label: 'Reference',
       items: [
-        'reference/cli',
-        'reference/module-api',
-        'reference/utilities',
+        {type: 'doc', id: 'reference/cli', label: 'CLI Options'},
+        {type: 'doc', id: 'reference/module-api', label: 'Perl Module API'},
+        {type: 'doc', id: 'reference/csv-reorder-utility', label: 'CSV Reorder Utility'},
       ],
     },
     {
       type: 'category',
-      label: 'Implementation',
+      label: 'How It Works',
       items: [
-        'implementation/overview',
-        'implementation/benchmark',
+        {type: 'doc', id: 'how-it-works/validation-engines', label: 'Validation Engines'},
+        {type: 'doc', id: 'how-it-works/benchmark', label: 'Benchmark'},
       ],
     },
-    {
-      type: 'category',
-      label: 'Troubleshooting',
-      items: ['troubleshooting/common-issues'],
-    },
+    {type: 'doc', id: 'troubleshooting/common-issues', label: 'Troubleshooting'},
   ],
 };
 

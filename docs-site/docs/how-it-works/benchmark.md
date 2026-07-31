@@ -28,7 +28,7 @@ These numbers come from a simple local synthetic run against the bundled OMOP 5.
 
 ## Takeaway
 
-The main result is straightforward: on this workload, `--turbo` is consistently much faster than the default engine.
+The main result is straightforward: on this workload, `--turbo` is consistently much faster than the default `JSON::Validator` engine.
 
 For these local runs, the speedup was roughly:
 
@@ -39,21 +39,24 @@ For these local runs, the speedup was roughly:
 
 So in practice:
 
-- default engine: safer baseline, slower
-- turbo engine: faster, but maintained as a second engine
+- default engine: generic `JSON::Validator` baseline, slower
+- turbo engine: specialized row-check path, faster
 
 ## Recommendation
+
+For the engine design and terminology, see [Validation Engines](./validation-engines.md). For the user-facing option, see [`--turbo`](../reference/cli.md#--turbo) in the CLI reference.
 
 Use the default engine when:
 
 - the CSV is not especially large
-- you want the most conservative path
+- you want the general JSON Schema validator path
+- you are comparing behavior while debugging
 
 Use `--turbo` when:
 
 - you are validating large files
 - runtime is the main reason to switch
-- you are staying within the current tested schema model
+- you want the specialized OMOP CSV row-check path
 
 ## Caveat
 

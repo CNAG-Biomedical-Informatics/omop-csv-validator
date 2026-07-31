@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
+  <title id="title">One command with two validation engines</title>
+  <desc id="desc">OMOP DDL and one streamed CSV row form shared validation input. The default JSON Validator engine and the optional turbo engine check that same input and produce the same validation result contract.</desc>
+  <defs>
+    <marker id="arrow-slate" viewBox="0 0 10 10" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M1 1 L9 5 L1 9 Z" fill="#475569"/>
+    </marker>
+    <marker id="arrow-teal" viewBox="0 0 10 10" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M1 1 L9 5 L1 9 Z" fill="#0f766e"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M1 1 L9 5 L1 9 Z" fill="#2563eb"/>
+    </marker>
+    <filter id="shadow" x="-12%" y="-18%" width="124%" height="145%">
+      <feDropShadow dx="0" dy="7" stdDeviation="9" flood-color="#0f172a" flood-opacity="0.09"/>
+    </filter>
+    <style>
+      .bg { fill: #f8fafc; }
+      .card { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#shadow); }
+      .shared { fill: #fffaf0; stroke: #f59e0b; stroke-width: 1.5; filter: url(#shadow); }
+      .default { fill: #f0fdfa; stroke: #14b8a6; stroke-width: 2; filter: url(#shadow); }
+      .turbo { fill: #eff6ff; stroke: #60a5fa; stroke-width: 2; filter: url(#shadow); }
+      .result { fill: #f0fdf4; stroke: #4ade80; stroke-width: 1.5; filter: url(#shadow); }
+      .title { font: 800 30px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0f172a; }
+      .subtitle { font: 500 16px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #475569; }
+      .eyebrow { font: 800 11px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #64748b; letter-spacing: 0; }
+      .label { font: 800 22px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0f172a; }
+      .body { font: 500 14px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #475569; }
+      .bullet { font: 600 14px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #334155; }
+      .badge { font: 800 10px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; letter-spacing: 0; }
+      .divider { stroke: #d7e0e7; stroke-width: 1.5; }
+      .arrow-slate { fill: none; stroke: #475569; stroke-width: 2.5; marker-end: url(#arrow-slate); }
+      .arrow-teal { fill: none; stroke: #0f766e; stroke-width: 3; marker-end: url(#arrow-teal); }
+      .arrow-blue { fill: none; stroke: #2563eb; stroke-width: 3; marker-end: url(#arrow-blue); }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1200" height="700"/>
+
+  <text x="60" y="52" class="title">One command, two validation engines</text>
+  <text x="60" y="83" class="subtitle">Preparation and results stay the same; only the per-row checker changes.</text>
+  <path d="M60 111 H1140" class="divider"/>
+
+  <rect x="60" y="150" width="280" height="106" rx="8" class="card"/>
+  <path d="M87 177 H111 L123 189 V229 H87 Z" fill="#f1f5f9" stroke="#64748b" stroke-width="1.8"/>
+  <path d="M111 177 V189 H123" fill="none" stroke="#64748b" stroke-width="1.8"/>
+  <path d="M95 199 H115 M95 208 H115 M95 217 H108" fill="none" stroke="#94a3b8" stroke-width="1.8"/>
+  <text x="142" y="178" class="eyebrow">VALIDATION RULES</text>
+  <text x="142" y="207" class="label">OMOP DDL</text>
+  <text x="142" y="233" class="body">Columns, types, and nullability</text>
+
+  <rect x="420" y="135" width="360" height="140" rx="8" class="shared"/>
+  <text x="448" y="164" class="eyebrow">SHARED PREPARATION</text>
+  <text x="448" y="198" class="label">Schema + normalized row</text>
+  <circle cx="453" cy="226" r="4" fill="#d97706"/>
+  <text x="467" y="231" class="body">DDL supplies the validation rules</text>
+  <circle cx="453" cy="251" r="4" fill="#d97706"/>
+  <text x="467" y="256" class="body">CSV supplies one streamed row</text>
+
+  <rect x="860" y="150" width="280" height="106" rx="8" class="card"/>
+  <rect x="887" y="177" width="40" height="48" rx="3" fill="#f1f5f9" stroke="#64748b" stroke-width="1.8"/>
+  <path d="M887 193 H927 M887 209 H927 M900 177 V225 M914 177 V225" fill="none" stroke="#94a3b8" stroke-width="1.4"/>
+  <text x="946" y="178" class="eyebrow">TABLE DATA</text>
+  <text x="946" y="207" class="label">One OMOP CSV</text>
+  <text x="946" y="233" class="body">Streamed row by row</text>
+
+  <path d="M340 203 H412" class="arrow-slate"/>
+  <path d="M860 203 H788" class="arrow-slate"/>
+
+  <path d="M560 277 V302 H310 V330" class="arrow-teal"/>
+  <path d="M640 277 V302 H890 V330" class="arrow-blue"/>
+
+  <rect x="60" y="338" width="500" height="188" rx="8" class="default"/>
+  <text x="90" y="370" class="eyebrow" fill="#0f766e">DEFAULT ENGINE</text>
+  <rect x="404" y="354" width="128" height="27" rx="6" fill="#ccfbf1"/>
+  <text x="468" y="372" class="badge" fill="#115e59" text-anchor="middle">CURRENT DEFAULT</text>
+  <text x="90" y="410" class="label">JSON::Validator</text>
+  <text x="90" y="440" class="body">General JSON Schema validation, applied row by row</text>
+  <circle cx="95" cy="472" r="4" fill="#0f766e"/>
+  <text x="109" y="477" class="bullet">Not legacy or deprecated</text>
+  <circle cx="95" cy="500" r="4" fill="#0f766e"/>
+  <text x="109" y="505" class="bullet">Conservative behavioral baseline</text>
+
+  <rect x="640" y="338" width="500" height="188" rx="8" class="turbo"/>
+  <text x="670" y="370" class="eyebrow" fill="#1d4ed8">OPT-IN ENGINE</text>
+  <rect x="1012" y="354" width="100" height="27" rx="6" fill="#dbeafe"/>
+  <text x="1062" y="372" class="badge" fill="#1d4ed8" text-anchor="middle">--turbo</text>
+  <text x="670" y="410" class="label">Specialized row checks</text>
+  <text x="670" y="440" class="body">Purpose-built checks compiled from the same schema</text>
+  <circle cx="675" cy="472" r="4" fill="#2563eb"/>
+  <text x="689" y="477" class="bullet">Checks required fields and scalar types directly</text>
+  <circle cx="675" cy="500" r="4" fill="#2563eb"/>
+  <text x="689" y="505" class="bullet">Choose it when runtime matters</text>
+
+  <path d="M310 528 V553 H545 V576" class="arrow-teal"/>
+  <path d="M890 528 V553 H655 V576" class="arrow-blue"/>
+
+  <rect x="250" y="584" width="700" height="96" rx="8" class="result"/>
+  <text x="278" y="614" class="eyebrow" fill="#166534">SHARED CONTRACT</text>
+  <text x="278" y="650" class="label">Same validation result</text>
+  <path d="M590 602 V662" class="divider"/>
+  <rect x="829" y="598" width="93" height="25" rx="6" fill="#dcfce7"/>
+  <text x="875.5" y="615" class="badge" fill="#166534" text-anchor="middle">PARITY TESTED</text>
+  <text x="618" y="642" class="body">Same findings and exit statuses</text>
+  <text x="618" y="665" class="body">Same human, JSON, TSV, and XLSX formats</text>
+</svg>

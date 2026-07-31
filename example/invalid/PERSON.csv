@@ -1,0 +1,3 @@
+person_id,gender_concept_id,year_of_birth,month_of_birth,day_of_birth,birth_datetime,race_concept_id,ethnicity_concept_id,location_id,provider_id,care_site_id,person_source_value,gender_source_value,gender_source_concept_id,race_source_value,race_source_concept_id,ethnicity_source_value,ethnicity_source_concept_id
+1,8532,1963,12,31,"1966-12-31T00:00:00Z",8516,0,\N,\N,\N,source1,F,0,black,0,west_indian,0
+A17,8532,1963,12,31,"1966-12-31T00:00:00Z",8516,0,\N,\N,\N,source2,F,0,black,0,west_indian,0

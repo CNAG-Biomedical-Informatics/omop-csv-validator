@@ -1,59 +1,39 @@
 <p align="center">
-  <a href="https://github.com/CNAG-Biomedical-Informatics/omop-csv-validator"><img src="https://raw.githubusercontent.com/CNAG-Biomedical-Informatics/omop-csv-validator/main/docs-site/static/img/omop-csv-validator-logo.png" width="300" alt="OMOP CSV Validator"></a>
+  <a href="https://cnag-biomedical-informatics.github.io/omop-csv-validator/"><img src="https://raw.githubusercontent.com/CNAG-Biomedical-Informatics/omop-csv-validator/main/docs-site/static/img/omop-csv-validator-logo.png" width="180" alt="OMOP CSV Validator"></a>
 </p>
 <p align="center">
-  <em>Validate OMOP CDM CSV files against schemas derived from PostgreSQL DDL</em>
+  <em>Validate OMOP CDM CSV exports before database ingestion</em>
 </p>
 
-[![CPAN Publish](https://github.com/CNAG-Biomedical-Informatics/omop-csv-validator/actions/workflows/cpan-publish.yml/badge.svg)](https://github.com/CNAG-Biomedical-Informatics/omop-csv-validator/actions/workflows/cpan-publish.yml)
-[![Documentation Status](https://github.com/CNAG-Biomedical-Informatics/omop-csv-validator/actions/workflows/documentation.yml/badge.svg)](https://github.com/CNAG-Biomedical-Informatics/omop-csv-validator/actions/workflows/documentation.yml)
-[![Coverage Status](https://coveralls.io/repos/github/CNAG-Biomedical-Informatics/omop-csv-validator/badge.svg?branch=main)](https://coveralls.io/github/CNAG-Biomedical-Informatics/omop-csv-validator?branch=main)
-[![Kwalitee Score](https://cpants.cpanauthors.org/dist/OMOP-CSV-Validator.svg)](https://cpants.cpanauthors.org/dist/OMOP-CSV-Validator)
-![version](https://img.shields.io/badge/version-0.05-blue)
-[![License](https://img.shields.io/badge/License-Artistic%202.0-0298c3.svg)](https://opensource.org/licenses/Artistic-2.0)
-
----
-
-**📘 Documentation:** <a href="https://cnag-biomedical-informatics.github.io/omop-csv-validator/" target="_blank">https://cnag-biomedical-informatics.github.io/omop-csv-validator/</a>
-
-**📦 CPAN Distribution:** <a href="https://metacpan.org/pod/OMOP::CSV::Validator" target="_blank">https://metacpan.org/pod/OMOP::CSV::Validator</a>
-
----
+[![Build and test](https://github.com/CNAG-Biomedical-Informatics/omop-csv-validator/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/CNAG-Biomedical-Informatics/omop-csv-validator/actions/workflows/build-and-test.yml)
+[![Documentation](https://github.com/CNAG-Biomedical-Informatics/omop-csv-validator/actions/workflows/documentation.yml/badge.svg)](https://github.com/CNAG-Biomedical-Informatics/omop-csv-validator/actions/workflows/documentation.yml)
+[![CPAN version](https://img.shields.io/cpan/v/OMOP-CSV-Validator.svg)](https://metacpan.org/release/OMOP-CSV-Validator)
+[![Coverage](https://coveralls.io/repos/github/CNAG-Biomedical-Informatics/omop-csv-validator/badge.svg?branch=main)](https://coveralls.io/github/CNAG-Biomedical-Informatics/omop-csv-validator?branch=main)
+[![License](https://img.shields.io/badge/License-Artistic%202.0-0298c3.svg)](LICENSE)
 
 # OMOP CSV Validator
 
-OMOP CSV Validator is a small Perl CLI and module for validating OMOP CDM CSV files against schemas derived from PostgreSQL DDL.
+OMOP CSV Validator checks the columns, nulls, and scalar values in an OMOP CDM CSV export before the file is loaded into a database. It derives the validation rules from PostgreSQL OMOP DDL, so ETL development can use the same table definitions as the target database.
 
-## Documentation
+[Documentation](https://cnag-biomedical-informatics.github.io/omop-csv-validator/) · [MetaCPAN](https://metacpan.org/pod/OMOP::CSV::Validator)
 
-Full project documentation lives in the Docusaurus site under [docs-site](docs-site/README.md).
+## Install
 
-- [Docs overview](docs-site/docs/overview.md)
-- [Installation](docs-site/docs/user-guide/installation.md)
-- [Validate a CSV](docs-site/docs/user-guide/validate-a-csv.md)
-- [CLI reference](docs-site/docs/reference/cli.md)
-- [Implementation](docs-site/docs/implementation/overview.md)
-- [Troubleshooting](docs-site/docs/troubleshooting/common-issues.md)
-
-## Installation
-
-Install the packaged release from CPAN:
+OMOP CSV Validator is used as a command-line program; using it does not require writing or understanding Perl. The standard CPAN client is included with Perl:
 
 ```bash
-cpanm -n OMOP::CSV::Validator
+cpan OMOP::CSV::Validator
 ```
 
-If you want the latest repository checkout instead:
+For an isolated runtime with no host Perl-module setup:
 
 ```bash
-git clone https://github.com/CNAG-Biomedical-Informatics/omop-csv-validator.git
-cd omop-csv-validator
-cpanm -n --installdeps .
+docker run --rm manuelrueda/omop-csv-validator:0.05 --version
 ```
 
-## Quick start
+See [Installation](https://cnag-biomedical-informatics.github.io/omop-csv-validator/docs/user-guide/installation) for `cpanm`, Docker, Apptainer, development, and non-`sudo` options.
 
-If you installed from CPAN:
+## Validate one table export
 
 ```bash
 omop-csv-validator \
@@ -61,26 +41,32 @@ omop-csv-validator \
   --input path/to/DRUG_EXPOSURE.csv
 ```
 
-If you are running from a repository checkout:
-
-```bash
-bin/omop-csv-validator \
-  --ddl ddl/OMOPCDM_postgresql_5.4_ddl.sql \
-  --input example/DRUG_EXPOSURE.csv
+```text
+✅ CSV file 'path/to/DRUG_EXPOSURE.csv' is valid against the 'DRUG_EXPOSURE' schema.
 ```
 
-## Tests
+Each invocation validates one CSV file against one OMOP table. For a runnable repository example, failure output, folder loops, JSON automation, and spreadsheet reports, use the documentation links below.
 
-Run the test suite:
+![Command-line and spreadsheet validation results](https://raw.githubusercontent.com/CNAG-Biomedical-Informatics/omop-csv-validator/main/docs-site/static/img/validation-report-preview.svg)
 
-```bash
-prove -l t/
-```
+## Documentation
 
-## Citation
+- [Quick Start](https://cnag-biomedical-informatics.github.io/omop-csv-validator/docs/user-guide/quick-start)
+- [Validate One CSV](https://cnag-biomedical-informatics.github.io/omop-csv-validator/docs/user-guide/validate-a-csv)
+- [Validate a Folder](https://cnag-biomedical-informatics.github.io/omop-csv-validator/docs/user-guide/validate-a-folder)
+- [Spreadsheet Reports](https://cnag-biomedical-informatics.github.io/omop-csv-validator/docs/user-guide/spreadsheet-reports)
+- [CLI Options](https://cnag-biomedical-informatics.github.io/omop-csv-validator/docs/reference/cli)
+- [Validation Engines](https://cnag-biomedical-informatics.github.io/omop-csv-validator/docs/how-it-works/validation-engines)
+- [Troubleshooting](https://cnag-biomedical-informatics.github.io/omop-csv-validator/docs/troubleshooting/common-issues)
 
-If you use OMOP CSV Validator in a publication, pipeline, or shared resource, please cite or acknowledge it. Citation metadata is available in [CITATION.cff](CITATION.cff), which GitHub can also expose through the repository citation panel.
+## Scope
 
-## License
+This project validates CSV structure and scalar values against DDL-derived rules. It complements database-level OMOP data-quality tools; it does not replace terminology, clinical, or post-load quality review.
 
-Released under the [Artistic License 2.0](LICENSE).
+## Development
+
+Install the repository dependencies and run `prove -l t/`. Contribution and implementation details are maintained in the [documentation](https://cnag-biomedical-informatics.github.io/omop-csv-validator/).
+
+## Citation and license
+
+Citation metadata is available in [CITATION.cff](CITATION.cff). The project is released under the [Artistic License 2.0](LICENSE).

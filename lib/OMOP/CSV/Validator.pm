@@ -13,7 +13,7 @@ our @DETECTABLE_SEPARATORS = ( ',', "\t", ';', '|' );
 
 =head1 NAME
 
-OMOP::CSV::Validator - Validates OMOP CDM CSV files against their expected data types
+OMOP::CSV::Validator - Validate OMOP CDM CSV files before database ingestion
 
 =head1 SYNOPSIS
 
@@ -43,7 +43,7 @@ OMOP::CSV::Validator - Validates OMOP CDM CSV files against their expected data 
 
 =head1 DESCRIPTION
 
-OMOP::CSV::Validator is a CLI tool and Perl module designed to validate OMOP Common Data Model (CDM) CSV files. It auto-generates JSON schemas from PostgreSQL DDL files and then validates CSV rows against those schemas.
+OMOP::CSV::Validator is a CLI tool and Perl module for validating OMOP Common Data Model (CDM) CSV files before database ingestion. It derives schemas from PostgreSQL DDL files and validates each CSV row against the selected OMOP table definition.
 
 =head1 METHODS
 

@@ -2,17 +2,21 @@
 sidebar_position: 3
 ---
 
-# Utilities
-
-## `reorder-csv.pl`
+# CSV Reorder Utility
 
 `utils/reorder-csv.pl` is a supporting utility for reordering CSV columns to match the order defined in a DDL file.
 
-## When you need it
+:::note[Not required for validation]
 
 You do **not** need to reorder columns before using `omop-csv-validator`.
 
 The validator matches data by header name, so validation is header-based rather than position-based.
+
+:::
+
+![Why CSV column reordering can be useful before positional database loading](/img/csv-reorder-utility.svg)
+
+## When you need it
 
 `reorder-csv.pl` is useful when a downstream step expects columns in canonical OMOP table order, for example:
 

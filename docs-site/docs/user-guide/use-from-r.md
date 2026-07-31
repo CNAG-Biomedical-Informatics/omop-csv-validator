@@ -4,7 +4,9 @@ sidebar_position: 3
 
 # Use from R
 
-The simplest R integration is to call the CLI with `--json` and parse the result with `jsonlite`.
+R integration means calling the same CLI with `--json` and parsing the result with `jsonlite`.
+
+Use this page when an R script, notebook, or pipeline needs to make decisions from the validation result.
 
 ## Why this is the recommended path
 

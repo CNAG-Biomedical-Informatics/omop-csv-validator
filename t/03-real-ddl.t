@@ -53,4 +53,19 @@ is( $exit_code, 0, 'CLI JSON mode succeeds against bundled real DDL and example 
 is( $payload->{ok}, 1, 'CLI JSON mode reports success for bundled example' );
 is( $payload->{schema_name}, 'DRUG_EXPOSURE', 'CLI JSON mode reports the inferred bundled schema name' );
 
+my ( $invalid_exit_code, $invalid_payload ) = run_cli_json(
+    '--ddl',   'ddl/OMOPCDM_postgresql_5.4_ddl.sql',
+    '--input', 'example/invalid/PERSON.csv',
+    '--json',
+);
+is( $invalid_exit_code, 1, 'Bundled invalid example returns the validation-failure exit code' );
+is( $invalid_payload->{ok}, 0, 'Bundled invalid example reports failure' );
+is( $invalid_payload->{error_count}, 1, 'Bundled invalid example reports one failing row' );
+is( $invalid_payload->{row_errors}[0]{row}, 2, 'Bundled invalid example identifies the second row' );
+like(
+    $invalid_payload->{row_errors}[0]{messages}[0],
+    qr/Expected integer/,
+    'Bundled invalid example reports the person_id type error'
+);
+
 done_testing();
