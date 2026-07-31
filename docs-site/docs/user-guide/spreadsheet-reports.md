@@ -4,6 +4,8 @@ sidebar_position: 5
 
 # Spreadsheet Reports
 
+Spreadsheet reports are optional. The normal stdout message and exit status are enough for ordinary command-line use; generate a report only when someone needs to inspect or filter row-level results in spreadsheet software.
+
 ## What this feature does
 
 The validator still reads OMOP table exports as text files:
@@ -14,6 +16,8 @@ The validator still reads OMOP table exports as text files:
 It does **not** read `.xlsx` files as input.
 
 Spreadsheet reporting is an optional output layer for users who review validation results in Excel or LibreOffice.
+
+![OMOP CSV Validator report preview](/img/validation-report-preview.svg)
 
 ## Input vs output
 
@@ -95,7 +99,11 @@ Report generation does not replace validation. The CLI still:
 
 The report file is a review artifact. The validator result still comes from the normal CLI output or `--json`.
 
+:::note[Compact terminal output]
+
 When you use `--report-tsv` or `--report-xlsx`, the CLI keeps stdout compact on validation failure. It does not print the full row-by-row error listing, because that detail is already present in the generated report.
+
+:::
 
 ## Typical Excel workflow
 

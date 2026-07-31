@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Validate OMOP CSV files before database ingestion</title>
+  <desc id="desc">An ETL produces one OMOP CSV file. The validator applies rules from OMOP PostgreSQL DDL. Valid files continue to the database, files with errors return to the ETL, and optional reports support automation and review.</desc>
+  <defs>
+    <marker id="arrow-teal" viewBox="0 0 10 10" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto-start-reverse" markerUnits="userSpaceOnUse">
+      <path d="M1 1 L9 5 L1 9 Z" fill="#0f766e"/>
+    </marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto-start-reverse" markerUnits="userSpaceOnUse">
+      <path d="M1 1 L9 5 L1 9 Z" fill="#b42318"/>
+    </marker>
+    <marker id="arrow-slate" viewBox="0 0 10 10" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto-start-reverse" markerUnits="userSpaceOnUse">
+      <path d="M1 1 L9 5 L1 9 Z" fill="#475569"/>
+    </marker>
+    <filter id="shadow" x="-12%" y="-18%" width="124%" height="145%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#0f172a" flood-opacity="0.1"/>
+    </filter>
+    <style>
+      .bg { fill: #f8fafc; }
+      .card { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#shadow); }
+      .validator { fill: #0f766e; stroke: #115e59; stroke-width: 2; filter: url(#shadow); }
+      .pass { fill: #f0fdf4; stroke: #4ade80; stroke-width: 1.5; filter: url(#shadow); }
+      .fail { fill: #fff5f5; stroke: #fca5a5; stroke-width: 1.5; filter: url(#shadow); }
+      .report { fill: #fffaf0; stroke: #fdba74; stroke-width: 1.5; filter: url(#shadow); }
+      .database { fill: #eff6ff; stroke: #93c5fd; stroke-width: 1.5; filter: url(#shadow); }
+      .title { font: 800 32px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0f172a; }
+      .subtitle { font: 500 17px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #475569; }
+      .eyebrow { font: 800 11px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #64748b; letter-spacing: 0; }
+      .label { font: 800 21px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0f172a; }
+      .body { font: 500 14px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #475569; }
+      .small { font: 700 13px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #334155; }
+      .validator-eyebrow { font: 800 11px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #ccfbf1; letter-spacing: 0; }
+      .validator-label { font: 800 24px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #ffffff; }
+      .validator-body { font: 600 14px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #ecfeff; }
+      .pass-text { fill: #166534; }
+      .fail-text { fill: #991b1b; }
+      .arrow-teal { fill: none; stroke: #0f766e; stroke-width: 3.5; marker-end: url(#arrow-teal); }
+      .arrow-red { fill: none; stroke: #b42318; stroke-width: 3.5; marker-end: url(#arrow-red); }
+      .arrow-slate { fill: none; stroke: #475569; stroke-width: 2.5; marker-end: url(#arrow-slate); }
+      .dash { stroke-dasharray: 7 7; }
+      .divider { stroke: #d7e0e7; stroke-width: 1.5; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1200" height="720"/>
+
+  <text x="64" y="66" class="title">Validate OMOP CSV files before database ingestion</text>
+  <text x="64" y="100" class="subtitle">Check each table export during ETL development, while the file is still easy to inspect and replace.</text>
+  <path d="M64 132 H1136" class="divider"/>
+
+  <rect x="64" y="248" width="230" height="144" rx="8" class="card"/>
+  <text x="92" y="282" class="eyebrow">ETL OUTPUT</text>
+  <text x="92" y="320" class="label">One OMOP CSV</text>
+  <text x="92" y="350" class="body">One table per run</text>
+
+  <rect x="394" y="154" width="252" height="68" rx="8" class="card"/>
+  <text x="418" y="181" class="eyebrow">VALIDATION RULES</text>
+  <text x="418" y="207" class="small">OMOP PostgreSQL DDL</text>
+
+  <rect x="360" y="248" width="320" height="184" rx="8" class="validator"/>
+  <text x="392" y="282" class="validator-eyebrow">PRE-INGESTION CHECK</text>
+  <text x="392" y="320" class="validator-label">OMOP CSV Validator</text>
+  <circle cx="398" cy="352" r="5" fill="#ccfbf1"/>
+  <text x="414" y="357" class="validator-body">Required columns and nulls</text>
+  <circle cx="398" cy="382" r="5" fill="#ccfbf1"/>
+  <text x="414" y="387" class="validator-body">Scalar values and data types</text>
+  <circle cx="398" cy="412" r="5" fill="#ccfbf1"/>
+  <text x="414" y="417" class="validator-body">Rows streamed from the file</text>
+
+  <rect x="756" y="205" width="194" height="126" rx="8" class="pass"/>
+  <text x="784" y="239" class="eyebrow pass-text">VALID</text>
+  <text x="784" y="277" class="label">Ready to load</text>
+  <text x="784" y="307" class="body">Command exits 0</text>
+
+  <rect x="1002" y="192" width="134" height="152" rx="8" class="database"/>
+  <ellipse cx="1069" cy="232" rx="42" ry="15" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <path d="M1027 232 v48 c0 9 19 15 42 15 s42 -6 42 -15 v-48" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+  <path d="M1027 256 c0 9 19 15 42 15 s42 -6 42 -15" fill="none" stroke="#2563eb" stroke-width="2"/>
+  <text x="1069" y="322" class="small" text-anchor="middle">OMOP database</text>
+
+  <rect x="756" y="405" width="194" height="126" rx="8" class="fail"/>
+  <text x="784" y="439" class="eyebrow fail-text">NEEDS FIXES</text>
+  <text x="784" y="477" class="label">Return to ETL</text>
+  <text x="784" y="507" class="body">Command exits 1</text>
+
+  <rect x="360" y="516" width="320" height="112" rx="8" class="report"/>
+  <text x="392" y="550" class="eyebrow">OPTIONAL OUTPUT</text>
+  <text x="392" y="584" class="label">Reports</text>
+  <text x="500" y="578" class="body">JSON for automation</text>
+  <text x="500" y="604" class="body">TSV or XLSX for review</text>
+
+  <path d="M296 320 H352" class="arrow-teal"/>
+  <path d="M520 224 V240" class="arrow-slate dash"/>
+  <path d="M682 294 C714 294 724 268 748 268" class="arrow-teal"/>
+  <path d="M952 268 H994" class="arrow-teal"/>
+  <path d="M682 364 C722 378 722 468 748 468" class="arrow-red"/>
+  <path d="M520 434 V508" class="arrow-slate"/>
+  <path d="M853 533 V558 C853 628 790 674 680 674 H300 C220 674 180 620 180 548 V400" class="arrow-red dash"/>
+  <text x="688" y="704" class="small fail-text">Fix the export and run the check again</text>
+</svg>

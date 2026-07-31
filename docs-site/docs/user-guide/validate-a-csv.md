@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 3
 ---
 
 # Validate a CSV
@@ -20,101 +20,29 @@ The command:
 - infers the table name from the CSV filename
 - validates each row against that schema
 
+:::important One input CSV per run
+The validator accepts **one CSV file per invocation**. Each run validates one OMOP table, for example `PERSON.csv`, `DRUG_EXPOSURE.csv`, or `OBSERVATION.csv`.
+
+To validate a folder of OMOP CSV files, run the command once per file. See [Validate a Folder](./validate-a-folder.md) for a complete loop.
+:::
+
 Validation is performed row by row. Large OMOP exports do not need to be fully loaded into memory before the tool starts checking records.
 
-For implementation details, engine tradeoffs, and local benchmark data, see the [Implementation](../implementation/overview.md) section.
+For engine details, tradeoffs, and local benchmark data, see [Validation Engines](../how-it-works/validation-engines.md).
 
 :::note Column order is not required for validation
 The validator matches columns by header name.
 
-If you later need a file in canonical DDL column order for import workflows such as SQLite `.import` or positional database loads, use [`reorder-csv.pl`](../reference/utilities.md).
+If you later need a file in canonical DDL column order for import workflows such as SQLite `.import` or positional database loads, use [`reorder-csv.pl`](../reference/csv-reorder-utility.md).
 :::
 
-## One table per run
+## Why one table per run?
 
-The validator accepts one input CSV file per invocation.
-
-That means each run validates one OMOP table at a time, such as:
-
-- `PERSON.csv`
-- `DRUG_EXPOSURE.csv`
-- `OBSERVATION.csv`
+OMOP tables have different columns and types. Keeping one CSV file per invocation makes the table selection, exit code, JSON result, and optional report unambiguous.
 
 If you need to validate multiple OMOP tables, run the command once per file from a shell loop, workflow manager, R script, or Python script.
 
-## Batch validation in Bash
-
-If you have many OMOP CSV files in one directory, a shell loop is usually simpler than adding batch behavior to the validator itself.
-
-Example:
-
-```bash
-for csv in exports/*.csv; do
-  echo "Validating $csv"
-  bin/omop-csv-validator \
-    --ddl ddl/OMOPCDM_postgresql_5.4_ddl.sql \
-    --input "$csv" \
-    --json
-done
-```
-
-This keeps validation one table per run, while still making folder-level workflows easy.
-
-## Batch validation in R
-
-You can do the same thing from R by looping over files and calling the CLI once per CSV.
-
-```r
-library(jsonlite)
-
-csv_files <- list.files("exports", pattern = "\\.csv$", full.names = TRUE)
-
-results <- lapply(csv_files, function(csv_file) {
-  raw <- system2(
-    "bin/omop-csv-validator",
-    args = c(
-      "--ddl", "ddl/OMOPCDM_postgresql_5.4_ddl.sql",
-      "--input", csv_file,
-      "--json"
-    ),
-    stdout = TRUE,
-    stderr = FALSE
-  )
-
-  fromJSON(paste(raw, collapse = "\n"))
-})
-```
-
-If you want more detail about the JSON result shape, see [Use from R](./use-from-r.md).
-
-## Batch validation in Python
-
-You can also loop over files from Python and call the CLI once per CSV.
-
-```python
-import glob
-import json
-import subprocess
-
-results = []
-
-for csv_file in glob.glob("exports/*.csv"):
-    completed = subprocess.run(
-        [
-            "bin/omop-csv-validator",
-            "--ddl", "ddl/OMOPCDM_postgresql_5.4_ddl.sql",
-            "--input", csv_file,
-            "--json",
-        ],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-
-    results.append(json.loads(completed.stdout))
-```
-
-If you want more detail about the JSON result shape, see [Use from Python](./use-from-python.md).
+The complete shell workflow is documented in [Validate a Folder](./validate-a-folder.md). For language-specific loops, see [Use from R](./use-from-r.md) or [Use from Python](./use-from-python.md).
 
 :::warning Separator override is rarely needed
 The validator normally infers the separator automatically.
@@ -151,9 +79,9 @@ bin/omop-csv-validator \
   --save-schemas schemas.json
 ```
 
-## Machine-readable JSON mode
+## Use JSON for automation
 
-If you want to consume validation results from R, Python, or another language, use `--json`:
+The default output is meant for humans reading a terminal. If another program needs to read the result, use `--json`. This replaces the human-readable stdout with a JSON object; it does not create an additional file:
 
 ```bash
 bin/omop-csv-validator \
@@ -170,6 +98,8 @@ This returns one JSON object with:
 - row-level error messages when validation fails
 
 The JSON mode still processes the input row by row. In practice, that means memory usage grows mainly with the number of failing rows returned in `row_errors`, not with the full size of the input file.
+
+For language-specific examples, see [Use from R](./use-from-r.md) and [Use from Python](./use-from-python.md).
 
 ## Spreadsheet-friendly review output
 

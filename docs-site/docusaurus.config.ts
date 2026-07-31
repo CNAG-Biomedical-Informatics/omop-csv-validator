@@ -3,8 +3,8 @@ import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
-  title: 'OMOP CSV Validator Docs',
-  tagline: 'Focused documentation for validating OMOP CSV extracts against DDL-derived schemas',
+  title: 'OMOP CSV Validator',
+  tagline: 'Validate OMOP CDM CSV exports before database ingestion',
   favicon: 'img/omop-csv-validator-logo.png',
   url: 'https://cnag-biomedical-informatics.github.io',
   baseUrl: '/omop-csv-validator/',
@@ -47,9 +47,9 @@ const config: Config = {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: 'OMOP CSV Validator Docs',
+      title: 'OMOP CSV Validator',
       logo: {
-        alt: 'OMOP CSV Validator Docs',
+        alt: 'OMOP CSV Validator',
         src: 'img/omop-csv-validator-logo.png',
       },
       items: [
@@ -58,6 +58,11 @@ const config: Config = {
           sidebarId: 'docsSidebar',
           position: 'left',
           label: 'Docs',
+        },
+        {
+          to: '/docs/user-guide/quick-start',
+          label: 'Quick Start',
+          position: 'left',
         },
         {
           href: 'https://github.com/CNAG-Biomedical-Informatics/omop-csv-validator',
@@ -76,6 +81,14 @@ const config: Config = {
               label: 'Overview',
               to: '/docs/overview',
             },
+            {
+              label: 'Quick Start',
+              to: '/docs/user-guide/quick-start',
+            },
+            {
+              label: 'Installation',
+              to: '/docs/user-guide/installation',
+            },
           ],
         },
         {
@@ -92,7 +105,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: 'Copyright © 2022-2026 Manuel Rueda, CNAG.',
+      copyright: 'Copyright © 2025-2026 Manuel Rueda, CNAG.',
     },
     prism: {
       theme: prismThemes.github,

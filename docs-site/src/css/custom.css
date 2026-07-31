@@ -43,6 +43,13 @@
   color: var(--omop-hero-color);
 }
 
+.theme-doc-markdown img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+}
+
 .omop-docs-hero-brand {
   display: flex;
   align-items: center;

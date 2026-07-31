@@ -4,7 +4,9 @@ sidebar_position: 4
 
 # Use from Python
 
-The simplest Python integration is to call the CLI with `--json` and parse the result with the standard `json` module.
+Python integration means calling the same CLI with `--json` and parsing the result with the standard `json` module.
+
+Use this page when a Python script, notebook, or pipeline needs to make decisions from the validation result.
 
 ## Why this is the recommended path
 

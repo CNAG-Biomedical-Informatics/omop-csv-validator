@@ -1,0 +1,112 @@
+name: Docker build (multi-arch)
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: CPAN release version to package
+        required: true
+        default: "0.05"
+        type: string
+  push:
+    tags:
+      - "*"
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+concurrency:
+  group: docker-${{ github.ref }}-${{ inputs.release_version || github.ref_name }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out container definition
+        uses: actions/checkout@v5
+
+      - name: Read build metadata
+        id: build_metadata
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          MANUAL_VERSION: ${{ inputs.release_version }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            version="$MANUAL_VERSION"
+          else
+            version="$RELEASE_TAG"
+          fi
+
+          version="${version#v}"
+          if [[ ! "$version" =~ ^[0-9]+([.][0-9]+)*(_[0-9]+)?$ ]]; then
+            echo "Unsupported release version: $version" >&2
+            exit 1
+          fi
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "revision=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64,amd64
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build smoke-test image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile
+          load: true
+          push: false
+          tags: omop-csv-validator:smoke
+          platforms: linux/amd64
+          build-args: |
+            OMOP_CSV_VALIDATOR_VERSION=${{ steps.build_metadata.outputs.version }}
+            VCS_REF=${{ steps.build_metadata.outputs.revision }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Test installed command
+        shell: bash
+        env:
+          EXPECTED_VERSION: ${{ steps.build_metadata.outputs.version }}
+        run: |
+          output="$(docker run --rm omop-csv-validator:smoke --version)"
+          grep -F "Version $EXPECTED_VERSION" <<< "$output"
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push multi-arch image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: true
+          tags: |
+            manuelrueda/omop-csv-validator:${{ steps.build_metadata.outputs.version }}
+            manuelrueda/omop-csv-validator:latest
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            OMOP_CSV_VALIDATOR_VERSION=${{ steps.build_metadata.outputs.version }}
+            VCS_REF=${{ steps.build_metadata.outputs.revision }}
+          labels: |
+            org.opencontainers.image.title=OMOP CSV Validator
+            org.opencontainers.image.description=Validate OMOP CDM CSV files before database ingestion
+            org.opencontainers.image.source=https://github.com/CNAG-Biomedical-Informatics/omop-csv-validator
+            org.opencontainers.image.version=${{ steps.build_metadata.outputs.version }}
+            org.opencontainers.image.revision=${{ steps.build_metadata.outputs.revision }}
+            org.opencontainers.image.licenses=Artistic-2.0
+          cache-from: type=gha
