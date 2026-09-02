@@ -4,15 +4,7 @@ sidebar_position: 4
 
 # Use from Python
 
-Python integration means calling the same CLI with `--json` and parsing the result with the standard `json` module.
-
-Use this page when a Python script, notebook, or pipeline needs to make decisions from the validation result.
-
-## Why this is the recommended path
-
-- no Perl-to-Python bridge is required
-- the validator keeps one stable machine-readable output format
-- the same command works in scripts, notebooks, and pipelines
+Call the CLI with `--json` and parse stdout with Python's standard `json` module. No Perl-to-Python bridge is required.
 
 ## Minimal example
 
@@ -48,7 +40,7 @@ The JSON result contains:
 
 If validation cannot even start, such as when no schema can be inferred, the result also contains `fatal_error`.
 
-These fields are intended to be the stable automation interface for Python clients.
+These fields are the JSON interface for Python clients.
 
 ## Typical Python branching
 
@@ -87,8 +79,6 @@ for csv_file in glob.glob("exports/*.csv"):
 
     results.append(json.loads(completed.stdout))
 ```
-
-That pattern keeps the validator simple while giving Python users a straightforward batch workflow.
 
 :::warning Separator override is usually unnecessary
 The CLI normally infers the separator. Add `--sep` in Python only if you know the file needs an explicit override.

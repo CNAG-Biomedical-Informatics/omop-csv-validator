@@ -39,7 +39,7 @@ bin/omop-csv-validator \
 
 The command exits with status `1`. The original CSV is not changed.
 
-For ordinary command-line use, this terminal result and exit status are enough. The remaining sections show optional ways to expose the same result to software or spreadsheet reviewers.
+For command-line use, the message and exit status are usually enough. JSON, TSV, and XLSX provide the same result in other formats.
 
 ## Get the failure as JSON
 
@@ -58,7 +58,7 @@ bin/omop-csv-validator \
 
 ## Write a TSV report
 
-Use `--report-tsv` only when someone needs a row-level report that opens in spreadsheet software. The report file is created in addition to the compact terminal result and exit status.
+Use `--report-tsv` to create a row-level report for spreadsheet software. The CLI also prints a compact result and returns its normal exit status.
 
 ```bash
 bin/omop-csv-validator \
@@ -91,13 +91,6 @@ The workbook contains `Summary` and `Validation` worksheets. For this run, `Summ
 ![Validation worksheet showing one valid PERSON row and one row with an invalid person_id](/img/quick-start-xlsx-report.svg)
 
 `--report-xlsx` requires `Excel::Writer::XLSX`, which is installed with the distribution dependencies.
-
-## What these examples show
-
-- the table schema is inferred from `DRUG_EXPOSURE.csv` or `PERSON.csv`
-- the same PostgreSQL DDL drives successful and failing checks
-- terminal, JSON, TSV, and XLSX outputs describe the same validation result
-- each invocation validates one CSV file against one OMOP table
 
 For folder-level validation, see [Validate a Folder](./validate-a-folder.md). If a CSV needs canonical DDL column order for a later import, see [CSV Reorder Utility](../reference/csv-reorder-utility.md).
 

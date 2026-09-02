@@ -97,7 +97,7 @@ Report generation does not replace validation. The CLI still:
 - exits `1` when validation errors are found
 - exits `2` for fatal setup errors
 
-The report file is a review artifact. The validator result still comes from the normal CLI output or `--json`.
+The report contains the row-level details. The overall result still comes from the CLI output or `--json`.
 
 :::note[Compact terminal output]
 

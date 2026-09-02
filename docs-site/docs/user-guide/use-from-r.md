@@ -4,15 +4,7 @@ sidebar_position: 3
 
 # Use from R
 
-R integration means calling the same CLI with `--json` and parsing the result with `jsonlite`.
-
-Use this page when an R script, notebook, or pipeline needs to make decisions from the validation result.
-
-## Why this is the recommended path
-
-- no Perl-to-R bridge is required
-- the validator keeps one stable machine-readable output format
-- the same command works in scripts, notebooks, and pipelines
+Call the CLI with `--json` and parse stdout with `jsonlite`. No Perl-to-R bridge is required.
 
 ## Minimal example
 
@@ -48,7 +40,7 @@ The JSON result contains:
 
 If validation cannot even start, such as when no schema can be inferred, the result also contains `fatal_error`.
 
-These fields are intended to be the stable automation interface for R clients.
+These fields are the JSON interface for R clients.
 
 ## Typical R branching
 
@@ -86,8 +78,6 @@ results <- lapply(csv_files, function(csv_file) {
   fromJSON(paste(raw, collapse = "\n"))
 })
 ```
-
-That pattern keeps the validator simple while giving R users a straightforward batch workflow.
 
 :::warning Separator override is usually unnecessary
 The CLI normally infers the separator. Add `--sep` in R only if you know the file needs an explicit override.

@@ -48,8 +48,8 @@ export default function Home() {
               </p>
               <p className={styles.lede}>
                 Each run checks one CSV file for one OMOP table against OMOP PostgreSQL
-                DDL. This gives an ETL a file-level validation step before loading data
-                into PostgreSQL.
+                DDL. Run it during ETL development, before loading the file into
+                PostgreSQL.
               </p>
               <div className={styles.actions}>
                 <Link className={styles.actionPrimary} to="/docs/user-guide/validate-a-csv">
@@ -89,11 +89,11 @@ export default function Home() {
             <div className={styles.sectionHeading}>
               <div>
                 <p className={styles.sectionLabel}>Validation output</p>
-                <h2>Terminal status for automation, reports for review.</h2>
+                <h2>Terminal, JSON, TSV, and XLSX output</h2>
               </div>
               <p>
-                The same run can return a compact command-line result and optional
-                TSV or XLSX reports for row-level inspection.
+                The exit code and terminal output report the result. Optional TSV and
+                XLSX files include one status per row.
               </p>
             </div>
             <img

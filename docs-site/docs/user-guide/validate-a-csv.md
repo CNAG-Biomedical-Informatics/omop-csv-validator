@@ -97,18 +97,18 @@ This returns one JSON object with:
 - the number of failing rows
 - row-level error messages when validation fails
 
-The JSON mode still processes the input row by row. In practice, that means memory usage grows mainly with the number of failing rows returned in `row_errors`, not with the full size of the input file.
+JSON mode still processes the input row by row. It stores failing rows in `row_errors`, so memory use depends mainly on the number of failures rather than the total number of rows.
 
 For language-specific examples, see [Use from R](./use-from-r.md) and [Use from Python](./use-from-python.md).
 
 ## Spreadsheet-friendly review output
 
-If you want a review artifact for Excel or LibreOffice users, the CLI can generate:
+The CLI can write two report formats for Excel or LibreOffice:
 
 - `--report-tsv`
 - `--report-xlsx`
 
-The validator still reads CSV or TSV as input. These flags only change the optional output artifact.
+The input remains CSV or TSV. These flags add a report file.
 
 See [Spreadsheet Reports](./spreadsheet-reports.md) for the exact input/output behavior and when to use each mode.
 
