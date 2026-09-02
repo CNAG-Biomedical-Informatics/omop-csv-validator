@@ -6,17 +6,17 @@ sidebar_position: 1
 
 OMOP CSV Validator checks OMOP CDM CSV files before they are loaded into a database.
 
-It is designed for **pre-ingestion checks**: run it while developing or testing ETLs, catch broken exports early, and fix the files before they reach PostgreSQL.
+Use it during ETL development and testing to find invalid exports before they reach PostgreSQL.
 
-Under the hood, it derives validation rules from OMOP PostgreSQL DDL and validates files row by row, so it can be used on large OMOP exports without first loading the full CSV into memory.
+The validator derives its rules from OMOP PostgreSQL DDL and processes the CSV row by row. It does not load the full file into memory.
 
 ![OMOP CSV Validator pre-ingestion workflow](/img/pre-ingestion-validation.svg)
 
 ## What it is for
 
-- checking whether a CSV matches DDL-derived columns and types **before database ingestion**
-- finding ETL mistakes while the output is still easy to inspect and replace
-- generating human, JSON, TSV, or XLSX outputs for pipelines and review workflows
+- checking whether a CSV matches DDL-derived columns and types before database ingestion
+- finding invalid rows before loading the export
+- printing terminal or JSON results and generating optional TSV or XLSX reports
 - using the same validation logic from a CLI or from Perl code
 
 ## Core workflow
@@ -28,34 +28,16 @@ The validator works in four steps:
 3. stream through the CSV and validate each row against the selected table schema
 4. report issues before the file reaches PostgreSQL
 
-## Project surfaces
+## Included commands and module
 
-- `bin/omop-csv-validator`
-  - main command-line interface
-- `lib/OMOP/CSV/Validator.pm`
-  - reusable Perl module
-- `utils/reorder-csv.pl`
-  - helper script for reordering CSV columns to match DDL order
+- `bin/omop-csv-validator`: command-line validator
+- `lib/OMOP/CSV/Validator.pm`: Perl module
+- `utils/reorder-csv.pl`: reorders CSV columns to match DDL order
 
-## What these docs optimize for
+## Requirements and limits
 
-This documentation is intentionally narrower than the docs in larger application repositories.
-
-It focuses on:
-
-- installation and local use
-- the main validation workflow
-- command reference
-- real caveats you are likely to hit with OMOP exports
-
-It does not attempt to present this project as a larger platform than it is.
-
-## Current boundaries
-
-These docs assume:
-
-- PostgreSQL-style OMOP DDL files
-- CSV files whose table name can be inferred from the filename, unless overridden
-- local execution by analysts, developers, or ETL pipelines working with OMOP extracts
+- The DDL must use PostgreSQL-style `CREATE TABLE` statements.
+- The CSV filename must identify its OMOP table unless `--table` is supplied.
+- Each command validates one CSV file against one OMOP table.
 
 Known limitations are described in [Troubleshooting](./troubleshooting/common-issues.md).

@@ -4,70 +4,52 @@ sidebar_position: 1
 
 # Validation Engines
 
-This section gives the short version of how the validator works internally and why there are two validation engines.
-
-The names can be misleading if you only see them weeks later:
+The validator has two engines:
 
 - the default engine is the `JSON::Validator` path
 - the turbo engine is a specialized OMOP CSV row checker built from the same DDL-derived schema
 
-The default engine is not legacy. It remains the conservative baseline. `--turbo` exists because the generic JSON Schema validation path is expensive when applied row by row to large CSV files.
+The default engine is not legacy or deprecated. `--turbo` avoids the cost of running a general JSON Schema validator on every row of a large CSV.
 
 ![How the default and turbo validation engines share inputs and results](/img/validation-engines.svg)
 
 ## Validation flow
 
-At a high level, the validator:
+Both engines use the same preparation steps:
 
 1. read PostgreSQL-style OMOP DDL
 2. derive a schema for the selected table
 3. stream through the CSV row by row
 4. validate each normalized row with one of two engines
 
-The important part is that the streaming model is shared by both engines and by all output modes. Large files do not take a different code path at the CLI level; the difference is only in how each row is checked once it has been parsed.
+Both engines stream the CSV. They differ only in how they check each parsed row.
 
 ## Engines
 
 ### Default engine: `JSON::Validator`
 
-This is the original path and still the default.
+This is the original engine and remains the default.
 
 - uses `JSON::Validator`
-- validates rows through a general JSON Schema validation library
-- conservative baseline for behavior
+- provides the reference behavior used in parity tests
 - slower on large files
 
 ### Turbo engine: specialized row checks
 
-This is the faster path for heavier workloads.
+This engine reduces validation time on large files.
 
 - does not call `JSON::Validator` for each row
 - compiles a lightweight per-table plan from the same DDL-derived schema
 - checks required columns, nullability, and scalar types directly
 - much faster on large files
-- keeps the same external CLI contract
-- needs parity coverage because it is a second engine
+- returns the same CLI outputs and exit codes
 
-In practice, the intent is simple: keep the default `JSON::Validator` engine for ordinary use, and reach for `--turbo` when the CSV is large enough that runtime matters.
-
-## What `--turbo` does not mean
-
-`--turbo` does not mean that the default engine is deprecated, abandoned, or unsafe.
-
-It means:
-
-- use the generic validator path by default
-- use the specialized row-check path when throughput matters
-- expect the same documented CLI outputs from both paths
+Use the default engine unless validation time is a problem. Use `--turbo` for large files or repeated runs.
 
 ## Parity
 
-Because `--turbo` is a second implementation, it is guarded by strict parity tests against the default path.
-
-Main parity coverage:
-
-- `t/05-turbo-parity.t`
+`t/05-turbo-parity.t` compares turbo results with the default engine for valid and invalid input.
 
 ## Benchmark
 
-See [Benchmark](./benchmark.md) for the local synthetic timings and the practical tradeoff between the two engines.
+See [Benchmark](./benchmark.md) for local synthetic timings.

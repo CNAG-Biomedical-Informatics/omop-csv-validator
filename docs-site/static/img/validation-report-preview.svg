@@ -36,12 +36,12 @@
   </defs>
 
   <rect class="bg" width="1200" height="640"/>
-  <text x="72" y="78" class="title">Clear results for pipelines and reviewers</text>
-  <text x="72" y="112" class="subtitle">Use compact command-line output for automation and spreadsheet reports for row-level review.</text>
+  <text x="72" y="78" class="title">Validation results</text>
+  <text x="72" y="112" class="subtitle">Read the result in the terminal or write a row-level spreadsheet report.</text>
 
   <rect x="72" y="166" width="448" height="362" class="panel"/>
   <text x="104" y="208" class="tiny">Command line</text>
-  <text x="104" y="238" class="label">Immediate feedback</text>
+  <text x="104" y="238" class="label">Terminal output</text>
   <rect x="104" y="268" width="384" height="214" class="term"/>
   <circle cx="128" cy="292" r="7" class="dot-red"/>
   <circle cx="150" cy="292" r="7" class="dot-yellow"/>
@@ -54,7 +54,7 @@
 
   <rect x="578" y="166" width="550" height="362" class="panel"/>
   <text x="610" y="208" class="tiny">Spreadsheet report</text>
-  <text x="610" y="238" class="label">Rows reviewers can filter</text>
+  <text x="610" y="238" class="label">Filter by row status</text>
 
   <rect x="610" y="270" width="486" height="42" class="sheet-head"/>
   <text x="628" y="296" class="sheet-head-text">person_id</text>
@@ -92,7 +92,7 @@
   <rect x="610" y="458" width="210" height="42" class="callout"/>
   <text x="632" y="484" class="callout-text">Filter to ERROR rows</text>
   <rect x="848" y="458" width="248" height="42" class="callout"/>
-  <text x="870" y="484" class="callout-text">Share with ETL developers</text>
+  <text x="870" y="484" class="callout-text">Inspect the source values</text>
 
-  <text x="104" y="570" class="body">The same run can serve automation, local debugging, and spreadsheet-based review.</text>
+  <text x="104" y="570" class="body">The report contains the input values, row status, and validation message.</text>
 </svg>

@@ -66,7 +66,7 @@ The default engine validates each row through `JSON::Validator`, a general JSON 
 
 For normal-sized files, stay on the default engine unless you have a specific reason to switch.
 
-The default engine is not legacy. It is the generic validation baseline. `--turbo` is the specialized high-throughput path.
+The default engine is not legacy or deprecated. It uses a general JSON Schema library; `--turbo` uses OMOP-specific row checks.
 
 The external behavior stays the same:
 

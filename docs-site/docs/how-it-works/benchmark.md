@@ -28,7 +28,7 @@ These numbers come from a simple local synthetic run against the bundled OMOP 5.
 
 ## Takeaway
 
-The main result is straightforward: on this workload, `--turbo` is consistently much faster than the default `JSON::Validator` engine.
+On this workload, `--turbo` was faster than the default `JSON::Validator` engine at every tested file size.
 
 For these local runs, the speedup was roughly:
 

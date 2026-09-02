@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
   <title id="title">One command with two validation engines</title>
-  <desc id="desc">OMOP DDL and one streamed CSV row form shared validation input. The default JSON Validator engine and the optional turbo engine check that same input and produce the same validation result contract.</desc>
+  <desc id="desc">OMOP DDL and one streamed CSV row form the validation input. The default JSON Validator engine and the optional turbo engine check the same input and produce the same result formats.</desc>
   <defs>
     <marker id="arrow-slate" viewBox="0 0 10 10" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse">
       <path d="M1 1 L9 5 L1 9 Z" fill="#475569"/>
@@ -79,14 +79,14 @@
   <circle cx="95" cy="472" r="4" fill="#0f766e"/>
   <text x="109" y="477" class="bullet">Not legacy or deprecated</text>
   <circle cx="95" cy="500" r="4" fill="#0f766e"/>
-  <text x="109" y="505" class="bullet">Conservative behavioral baseline</text>
+  <text x="109" y="505" class="bullet">Reference behavior for parity tests</text>
 
   <rect x="640" y="338" width="500" height="188" rx="8" class="turbo"/>
   <text x="670" y="370" class="eyebrow" fill="#1d4ed8">OPT-IN ENGINE</text>
   <rect x="1012" y="354" width="100" height="27" rx="6" fill="#dbeafe"/>
   <text x="1062" y="372" class="badge" fill="#1d4ed8" text-anchor="middle">--turbo</text>
   <text x="670" y="410" class="label">Specialized row checks</text>
-  <text x="670" y="440" class="body">Purpose-built checks compiled from the same schema</text>
+  <text x="670" y="440" class="body">Direct checks compiled from the same schema</text>
   <circle cx="675" cy="472" r="4" fill="#2563eb"/>
   <text x="689" y="477" class="bullet">Checks required fields and scalar types directly</text>
   <circle cx="675" cy="500" r="4" fill="#2563eb"/>
@@ -96,7 +96,7 @@
   <path d="M890 528 V553 H655 V576" class="arrow-blue"/>
 
   <rect x="250" y="584" width="700" height="96" rx="8" class="result"/>
-  <text x="278" y="614" class="eyebrow" fill="#166534">SHARED CONTRACT</text>
+  <text x="278" y="614" class="eyebrow" fill="#166534">OUTPUT</text>
   <text x="278" y="650" class="label">Same validation result</text>
   <path d="M590 602 V662" class="divider"/>
   <rect x="829" y="598" width="93" height="25" rx="6" fill="#dcfce7"/>

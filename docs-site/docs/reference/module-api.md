@@ -6,7 +6,7 @@ sidebar_position: 2
 
 The main Perl module is `OMOP::CSV::Validator`.
 
-This page summarizes the public methods at a practical level. For formal POD, see the module source.
+The methods below are the public API. See the module POD for full details.
 
 ## Constructor
 
@@ -61,4 +61,4 @@ The validator also normalizes OMOP-style `\N` markers to null values before vali
 
 Normalizes decimal commas to dots and returns a numeric value when the input looks numeric.
 
-This helper is used internally during validation and is exposed as part of the module surface today.
+Validation calls this helper internally. It is also available as a public method.

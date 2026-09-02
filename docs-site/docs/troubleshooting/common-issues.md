@@ -40,7 +40,7 @@ If you still see errors, the most likely cause is that the target column is not 
 
 ## DDL parsing assumptions
 
-The parser is intentionally simple. It expects PostgreSQL-style `CREATE TABLE` blocks and is not a general SQL parser.
+The parser supports PostgreSQL-style `CREATE TABLE` blocks. It is not a general SQL parser.
 
 It does handle common OMOP forms such as:
 
